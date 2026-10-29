@@ -127,6 +127,22 @@ small { color: var(--text-secondary); font-size: 13px; }
 .install-app-button { min-height: 36px; border: 1px solid var(--brand-border); border-radius: 999px; background: linear-gradient(135deg, var(--brand-light), var(--surface)); box-shadow: 0 4px 12px rgba(79, 70, 229, .12); color: var(--brand); padding: 7px 13px; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), color var(--transition), transform var(--transition); }
 .install-app-button::before { content: "↓"; display: inline-block; margin-right: 6px; font-size: 16px; line-height: 0; transform: translateY(1px); }
 .install-app-button:hover { border-color: var(--brand); background: var(--brand); box-shadow: 0 8px 18px rgba(79, 70, 229, .22); color: #fff; transform: translateY(-1px); }
+.auth-container { position: relative; display: flex; align-items: center; min-width: 0; }
+.google-login-wrap { display: flex; align-items: center; gap: 8px; }
+.auth-hint { display: none; }
+.auth-loading, .auth-error, .auth-unconfigured { color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
+.auth-error { color: var(--danger); }
+.auth-user { position: relative; }
+.auth-user-button { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; max-width: 190px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); padding: 4px 10px 4px 5px; color: var(--text-primary); cursor: pointer; }
+.auth-user-button:hover { border-color: var(--brand-border); }
+.auth-user-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 700; }
+.auth-user-chevron { color: var(--text-secondary); font-size: 14px; line-height: 1; }
+.auth-avatar { display: inline-flex; width: 26px; height: 26px; flex: 0 0 26px; align-items: center; justify-content: center; overflow: hidden; border-radius: 50%; background: var(--brand-light); color: var(--brand); font-size: 12px; font-weight: 800; }
+.auth-avatar-fallback { border: 1px solid var(--brand-border); }
+.auth-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; display: grid; min-width: 210px; gap: 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-hover); padding: 12px; }
+.auth-email { overflow: hidden; color: var(--text-secondary); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.auth-sign-out { border: 0; border-radius: var(--radius-sm); background: var(--surface-secondary); padding: 8px 10px; color: var(--text-primary); font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; }
+.auth-sign-out:hover { background: var(--brand-light); color: var(--brand); }
 .header-search { position: relative; display: flex; align-items: center; width: 220px; }
 .header-search .search-icon { position: absolute; left: 11px; color: var(--text-secondary); line-height: 1; pointer-events: none; }
 .header-search input { width: 100%; height: 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-primary); padding: 7px 10px 7px 30px; font-size: 13px; }
@@ -227,13 +243,15 @@ small { color: var(--text-secondary); font-size: 13px; }
 }
 @media (max-width: 760px) {
   .container { padding-right: max(16px, env(safe-area-inset-right)); padding-left: max(16px, env(safe-area-inset-left)); }
-  .header-inner { display: grid; grid-template-areas: "brand theme install menu" "search search search search" "nav nav nav nav"; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 10px 8px; align-items: center; padding-top: max(10px, env(safe-area-inset-top)); padding-bottom: 10px; }
+  .header-inner { display: grid; grid-template-areas: "brand theme install menu" "auth auth auth auth" "search search search search" "nav nav nav nav"; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 10px 8px; align-items: center; padding-top: max(10px, env(safe-area-inset-top)); padding-bottom: 10px; }
   .brand { grid-area: brand; width: auto; margin-right: 0; overflow: visible; }
   .brand > span:not(.brand-mark) { display: none; }
   .theme-toggle { grid-area: theme; order: initial; justify-self: end; }
   .install-app-button { grid-area: install; order: initial; justify-self: end; width: 40px; min-height: 40px; padding: 0; border-radius: 12px; font-size: 0; }
   .install-app-button::before { margin-right: 0; font-size: 20px; line-height: 1; }
   .mobile-menu-button { display: inline-flex; grid-area: menu; order: initial; justify-self: end; min-height: 40px; padding: 7px 10px; }
+  .auth-container { grid-area: auth; justify-content: flex-end; }
+  .auth-container .google-login-wrap { width: 100%; justify-content: flex-end; }
   .site-nav { display: none; grid-area: nav; order: initial; width: 100%; align-items: stretch; flex-direction: column; gap: 0; border-top: 1px solid var(--border); padding-top: 8px; }
   .site-nav.open { display: flex; }
   .site-nav a { padding: 8px 0; }

@@ -1,4 +1,4 @@
-const CACHE_NAME = "developer-interview-master-v8";
+const CACHE_NAME = "developer-interview-master-v9";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -14,6 +14,8 @@ const APP_SHELL = [
   "./css/progress.css",
   "./js/app.js",
   "./js/storage.js",
+  "./js/auth-config.js",
+  "./js/auth.js",
   "./js/topics.js",
   "./js/topic.js",
   "./js/quiz.js",
