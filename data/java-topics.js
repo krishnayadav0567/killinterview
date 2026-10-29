@@ -81,14 +81,21 @@
     ["design-patterns", "Design Patterns"]
   ];
 
-  const populatedTopics = new Set(["java-fundamentals", "multithreading"]);
+  const topicQuestionCounts = {
+    "java-fundamentals": { learning: 90, quiz: 60 },
+    "data-types-variables": { learning: 30, quiz: 20 },
+    "wrapper-classes": { learning: 30, quiz: 20 },
+    "oop-concepts": { learning: 30, quiz: 20 },
+    inheritance: { learning: 30, quiz: 20 },
+    multithreading: { learning: 90, quiz: 60 }
+  };
   window.JAVA_TOPICS = topicNames.map(([id, name], index) => ({
     id,
     name,
     description: descriptions[id],
     order: index + 1,
-    contentAvailable: populatedTopics.has(id),
-    learningQuestionCount: populatedTopics.has(id) ? 90 : 0,
-    quizQuestionCount: populatedTopics.has(id) ? 60 : 0
+    contentAvailable: Boolean(topicQuestionCounts[id]),
+    learningQuestionCount: topicQuestionCounts[id]?.learning || 0,
+    quizQuestionCount: topicQuestionCounts[id]?.quiz || 0
   }));
 })();

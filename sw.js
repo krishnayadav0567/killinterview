@@ -1,4 +1,4 @@
-const CACHE_NAME = "developer-interview-master-v7";
+const CACHE_NAME = "developer-interview-master-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -28,6 +28,10 @@ const APP_SHELL = [
   "./data/java/fundamentals/quiz-output.js",
   "./data/java/fundamentals/quiz-what.js",
   "./data/java/fundamentals/quiz-why.js",
+  "./data/java/data-types-variables.js",
+  "./data/java/wrapper-classes.js",
+  "./data/java/oop-concepts.js",
+  "./data/java/inheritance.js",
   "./data/java/multithreading/index.js",
   "./data/java/multithreading/what-is.js",
   "./data/java/multithreading/why.js",
