@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Developer Interview Master - a practical Java interview preparation dashboard." />
+  <title>Developer Interview Master</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/topics.css" />
+</head>
+<body data-page="home">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="Developer Interview Master home">
+        <span class="brand-mark">&lt;/&gt;</span>
+        <span>Developer Interview Master</span>
+      </a>
+      <button class="mobile-menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Primary navigation">
+        <a data-nav="home" href="index.html">Home</a>
+        <a data-nav="topics" href="topics.html">Topics</a>
+        <a data-nav="progress" href="progress.html">My Progress</a>
+      </nav>
+      <div class="header-search">
+        <label class="sr-only" for="global-search">Search topics and questions</label>
+        <span class="search-icon" aria-hidden="true">⌕</span>
+        <input id="global-search" type="search" placeholder="Search topics or questions..." autocomplete="off" />
+        <div id="search-results" class="search-results" role="listbox" aria-label="Search results"></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Java-first interview preparation</p>
+          <h1>Master technical interviews with clarity.</h1>
+          <p class="hero-subtitle">Understand what it is, why we need it, and how it works behind the scenes.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="topics.html">Explore Java topics <span aria-hidden="true">→</span></a>
+            <a class="button button-secondary" href="progress.html">View my progress</a>
+          </div>
+          <div class="hero-trust-row">
+            <span><strong id="hero-topic-count">38</strong> Java topics</span>
+            <span><strong id="hero-question-count">300</strong> deep-dive questions</span>
+            <span><strong>120</strong> practice MCQs</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="Interview preparation overview">
+          <div class="code-window">
+            <div class="code-window-bar"><span></span><span></span><span></span><small>interview-ready.java</small></div>
+            <pre><code><span class="code-keyword">public class</span> <span class="code-type">InterviewReady</span> {
+
+  <span class="code-keyword">public static void</span> main(String[] args) {
+    <span class="code-type">Knowledge</span> knowledge =
+      <span class="code-keyword">new</span> <span class="code-type">Knowledge</span>();
+
+    knowledge.<span class="code-method">understand</span>(<span class="code-string">"what"</span>);
+    knowledge.<span class="code-method">explain</span>(<span class="code-string">"why"</span>);
+    knowledge.<span class="code-method">visualize</span>(<span class="code-string">"how"</span>);
+  }
+}</code></pre>
+            <div class="code-window-footer"><span class="status-dot"></span> Learning mode enabled</div>
+          </div>
+          <div class="floating-stat floating-stat-top"><span class="stat-icon icon-green">✓</span><span><strong>Learn by reason</strong><small>Not just memorization</small></span></div>
+          <div class="floating-stat floating-stat-bottom"><span class="stat-icon icon-blue">↗</span><span><strong>Track your growth</strong><small>Saved locally in your browser</small></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block section-muted">
+      <div class="container">
+        <div class="section-heading-row">
+          <div>
+            <p class="eyebrow">Choose your path</p>
+            <h2>Learn the technologies that power modern teams.</h2>
+          </div>
+          <a class="text-link" href="topics.html">View all topics <span aria-hidden="true">→</span></a>
+        </div>
+        <div id="technology-grid" class="technology-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="container learning-callout">
+        <div>
+          <p class="eyebrow">A better way to prepare</p>
+          <h2>Build answers you can explain, not scripts you can repeat.</h2>
+          <p>Each learning question is organized around the interviewer’s most useful angles: what a concept is, why it exists, and how it works internally.</p>
+        </div>
+        <div class="callout-points">
+          <div><span class="point-number">01</span><span><strong>Learn</strong><small>Short, focused explanations with examples.</small></span></div>
+          <div><span class="point-number">02</span><span><strong>Practice</strong><small>Use output and concept-based MCQs.</small></span></div>
+          <div><span class="point-number">03</span><span><strong>Measure</strong><small>See progress topic by topic.</small></span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="current-year"></span> Developer Interview Master</span>
+      <span>Built for thoughtful preparation.</span>
+    </div>
+  </footer>
+
+  <script src="data/java-topics.js"></script>
+  <script src="data/java/index.js"></script>
+  <script src="data/java/fundamentals/index.js"></script>
+  <script src="data/java/fundamentals/what-is.js"></script>
+  <script src="data/java/fundamentals/why.js"></script>
+  <script src="data/java/fundamentals/how-it-works.js"></script>
+  <script src="data/java/fundamentals/quiz-output.js"></script>
+  <script src="data/java/fundamentals/quiz-what.js"></script>
+  <script src="data/java/fundamentals/quiz-why.js"></script>
+  <script src="data/java/multithreading/index.js"></script>
+  <script src="data/java/multithreading/what-is.js"></script>
+  <script src="data/java/multithreading/why.js"></script>
+  <script src="data/java/multithreading/how-it-works.js"></script>
+  <script src="data/java/multithreading/quiz-output.js"></script>
+  <script src="data/java/multithreading/quiz-what.js"></script>
+  <script src="data/java/multithreading/quiz-why.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

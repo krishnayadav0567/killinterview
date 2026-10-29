@@ -1,0 +1,20 @@
+.progress-section { padding-top: 28px; padding-bottom: 48px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card, .progress-panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; box-shadow: var(--shadow-sm); }
+.stat-card { padding: 18px; display: flex; flex-direction: column; gap: 4px; }
+.stat-card strong { font-size: 1.7rem; color: var(--color-primary); }
+.stat-card span { color: var(--color-text-muted); font-size: .88rem; }
+.progress-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr); gap: 18px; }
+.progress-panel { padding: 22px; }
+.panel-heading { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 16px; }
+.panel-heading h2 { margin-bottom: 0; }
+.progress-topic-list, #quiz-attempts { display: grid; gap: 10px; }
+.progress-topic-row, .attempt-row { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(100px, 1.5fr) auto; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid #f3f4f6; color: var(--color-text); }
+.progress-topic-row:last-child, .attempt-row:last-child { border-bottom: 0; }
+.progress-topic-row small, .attempt-row small { display: block; color: var(--color-text-muted); font-weight: 400; }
+.progress-topic-meter { height: 8px; border-radius: 99px; background: #e5e7eb; overflow: hidden; }
+.progress-topic-meter i { display: block; height: 100%; background: var(--color-primary); }
+.attempt-row { grid-template-columns: 1fr auto; }
+.compact-empty { margin: 0; padding: 20px; box-shadow: none; }
+@media (max-width: 800px) { .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .progress-layout { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .stats-grid { grid-template-columns: 1fr 1fr; } .progress-topic-row { grid-template-columns: 1fr auto; } .progress-topic-meter { grid-column: 1 / -1; grid-row: 2; } }

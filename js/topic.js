@@ -1,0 +1,174 @@
+(function () {
+  function escapeHTML(value) {
+    return window.DIM ? window.DIM.escapeHTML(value) : String(value ?? "");
+  }
+
+  function formatCode(value) {
+    return window.DIM ? window.DIM.formatCode(value) : escapeHTML(value || "");
+  }
+
+  function getTopicTheory(topicId) {
+    return (window.JAVA_TOPIC_THEORY || {})[topicId] || null;
+  }
+
+  function renderTheory(topic, theory) {
+    if (!theory) return `<div class="topic-theory-panel"><div class="empty-state"><h2>Theory is being prepared</h2><p>The complete guide for ${escapeHTML(topic.name)} will be added soon.</p></div></div>`;
+    return `<div id="topic-theory" class="topic-theory-panel">
+      <div class="theory-intro"><p class="eyebrow">Complete topic guide</p><h2>${escapeHTML(topic.name)} theory</h2><p>${escapeHTML(theory.introduction)}</p></div>
+      <div class="theory-sections">${theory.sections.map((section) => `<article class="theory-section"><h3>${escapeHTML(section.title)}</h3><p class="theory-summary">${escapeHTML(section.summary)}</p><ul class="theory-points">${section.points.map((point) => `<li>${escapeHTML(point)}</li>`).join("")}</ul><div class="theory-nuances"><strong>Important nuances</strong><ul>${section.nuances.map((nuance) => `<li>${escapeHTML(nuance)}</li>`).join("")}</ul></div>${section.code ? `<div class="code-block"><div class="code-block-title">Example</div><pre><code>${formatCode(section.code)}</code></pre></div>` : ""}</article>`).join("")}</div>
+      <section class="theory-takeaways"><h3>Interview takeaways</h3><ul>${theory.takeaways.map((takeaway) => `<li>${escapeHTML(takeaway)}</li>`).join("")}</ul></section>
+    </div>`;
+  }
+
+  function getTopicId() {
+    return new URLSearchParams(window.location.search).get("topic") || "java-fundamentals";
+  }
+
+  function renderQuestion(question) {
+    const learned = window.DIMStorage && window.DIMStorage.isQuestionLearned(question.id);
+    return `<article class="learning-card${learned ? " is-learned" : ""}" id="${escapeHTML(question.id)}" data-learned="${learned ? "true" : "false"}">
+      <div class="learning-question-row">
+        <h3>${escapeHTML(question.question)}</h3>
+        <span class="section-label">${escapeHTML(question.section || "concept")}</span>
+      </div>
+      <p class="learning-answer">${escapeHTML(question.answer)}</p>
+      <details open><summary>Explanation</summary><p>${escapeHTML(question.explanation)}</p></details>
+      ${question.codeExample ? `<div class="code-block"><div class="code-block-title">Example</div><pre><code>${formatCode(question.codeExample)}</code></pre></div>` : ""}
+      <div class="learning-details">
+        ${question.realWorldUseCase ? `<div><strong>Real-world use</strong><p>${escapeHTML(question.realWorldUseCase)}</p></div>` : ""}
+        ${question.commonMistakes ? `<div><strong>Common mistake</strong><p>${escapeHTML(question.commonMistakes)}</p></div>` : ""}
+      </div>
+      ${question.interviewReadyAnswer ? `<div class="interview-answer"><strong>Interview-ready answer</strong><p>${escapeHTML(question.interviewReadyAnswer)}</p></div>` : ""}
+      <div class="learning-card-footer"><label class="learned-toggle"><input type="checkbox" data-learned-id="${escapeHTML(question.id)}" ${learned ? "checked" : ""} /> <span class="learned-status">${learned ? "Done" : "Mark learned"}</span></label></div>
+    </article>`;
+  }
+
+  function renderPage(topicId) {
+    const topic = window.DIM && window.DIM.getTopic(topicId);
+    const hero = document.getElementById("topic-hero");
+    const content = document.getElementById("topic-content");
+    const breadcrumb = document.getElementById("breadcrumb-topic");
+
+    if (!topic || !topic.contentAvailable) {
+      if (breadcrumb) breadcrumb.textContent = topic ? topic.name : "Topic not found";
+      if (hero) hero.innerHTML = `<div class="empty-state"><h1>${escapeHTML(topic ? topic.name : "Topic not found")}</h1><p>This topic is not available yet.</p><a class="button button-primary" href="topics.html">Back to topics</a></div>`;
+      if (content) content.innerHTML = "";
+      return;
+    }
+
+    const questions = (window.JAVA_LEARNING_QUESTIONS || [])
+      .filter((question) => question.topicId === topicId)
+      .sort((a, b) => {
+        const sectionOrder = { what: 0, why: 1, how: 2 };
+        const sectionDifference = (sectionOrder[a.section] ?? 99) - (sectionOrder[b.section] ?? 99);
+        return sectionDifference || ((a.sectionOrder || 0) - (b.sectionOrder || 0));
+      });
+    const theory = getTopicTheory(topicId);
+    const stats = window.DIMStorage.getTopicStats(topicId, window.JAVA_LEARNING_QUESTIONS || []);
+    const quizUrl = window.DIM.getQuizUrl(topicId);
+
+    if (breadcrumb) breadcrumb.textContent = topic.name;
+    if (hero) {
+      hero.innerHTML = `<div class="topic-hero-copy"><p class="eyebrow">Java learning path</p><h1>${escapeHTML(topic.name)}</h1><p>${escapeHTML(topic.description)}</p><div class="topic-hero-actions"><a class="button button-primary" href="${quizUrl}">Practice quiz <span aria-hidden="true">→</span></a><span class="topic-progress-copy"><span><strong id="topic-learned-count">${stats.learned}</strong>/${questions.length} learned</span><button id="reset-topic-progress" class="button button-outline-danger topic-reset-button" type="button" ${stats.learned ? "" : "disabled"}>Reset learned</button></span></div></div><div class="topic-progress-ring"><strong id="topic-progress-percent">${stats.percentage}%</strong><small>complete</small></div>`;
+    }
+    if (content) {
+      content.innerHTML = `<div class="learning-toolbar"><div class="section-tabs" role="group" aria-label="Learning sections"><button class="section-tab active" type="button" data-section="theory">Theory</button><button class="section-tab" type="button" data-section="what">What</button><button class="section-tab" type="button" data-section="why">Why</button><button class="section-tab" type="button" data-section="how">How</button><button class="section-tab" type="button" data-section="all">All</button><button class="section-tab" type="button" data-section="done">Done</button></div><div><p id="learning-eyebrow" class="eyebrow">Topic theory</p><h2 id="learning-count" aria-live="polite">Complete guide to ${escapeHTML(topic.name)}</h2></div></div>${renderTheory(topic, theory)}<div id="learning-list" class="learning-list" hidden>${questions.map(renderQuestion).join("")}</div>`;
+    }
+
+    const list = document.getElementById("learning-list");
+    const tabs = document.querySelectorAll(".section-tab");
+    const learningEyebrow = document.getElementById("learning-eyebrow");
+    const learningCount = document.getElementById("learning-count");
+    const resetButton = document.getElementById("reset-topic-progress");
+    const theoryPanel = document.getElementById("topic-theory");
+    let selectedSection = "theory";
+
+    function updateTopicProgress(updated) {
+      const learnedCount = document.getElementById("topic-learned-count");
+      const percent = document.getElementById("topic-progress-percent");
+      if (learnedCount) learnedCount.textContent = String(updated.learned);
+      if (percent) percent.textContent = `${updated.percentage}%`;
+      if (resetButton) resetButton.disabled = updated.learned === 0;
+    }
+
+    function updateLearningHeading(visibleCards) {
+      const sectionLabels = { theory: "Topic theory", what: "What questions", why: "Why questions", how: "How questions", all: "Learn by angle", done: "Questions studied" };
+      if (selectedSection === "theory") {
+        if (learningEyebrow) learningEyebrow.textContent = sectionLabels.theory;
+        if (learningCount) learningCount.textContent = `Complete guide to ${topic.name}`;
+        return;
+      }
+      const questionCount = visibleCards.length;
+      const questionText = `${questionCount} ${selectedSection === "done" ? "completed " : ""}interview question${questionCount === 1 ? "" : "s"}`;
+      if (learningEyebrow) learningEyebrow.textContent = sectionLabels[selectedSection] || "Learn by angle";
+      if (learningCount) learningCount.textContent = questionText;
+    }
+
+    function applyFilter() {
+      if (theoryPanel) theoryPanel.hidden = selectedSection !== "theory";
+      list.hidden = selectedSection === "theory";
+      list.querySelectorAll(".learning-card").forEach((card) => {
+        const section = card.querySelector(".section-label")?.textContent.toLowerCase();
+        const learned = card.dataset.learned === "true";
+        const matchesSection = selectedSection === "all" || section === selectedSection;
+        card.hidden = selectedSection === "done" ? !learned : learned || !matchesSection;
+      });
+      updateLearningHeading(Array.from(list.querySelectorAll(".learning-card:not([hidden])")));
+    }
+
+    tabs.forEach((tab) => tab.addEventListener("click", () => {
+      tabs.forEach((item) => item.classList.toggle("active", item === tab));
+      selectedSection = tab.dataset.section;
+      applyFilter();
+    }));
+
+    if (resetButton) {
+      resetButton.addEventListener("click", () => {
+        if (!window.confirm(`Reset learned questions for ${topic.name}?`)) return;
+        window.DIMStorage.resetTopicLearned(topicId, window.JAVA_LEARNING_QUESTIONS || []);
+        list.querySelectorAll(".learning-card").forEach((card) => {
+          card.dataset.learned = "false";
+          card.classList.remove("is-learned");
+          const input = card.querySelector("input[data-learned-id]");
+          if (input) input.checked = false;
+          const status = card.querySelector(".learned-status");
+          if (status) status.textContent = "Mark learned";
+        });
+        updateTopicProgress(window.DIMStorage.getTopicStats(topicId, window.JAVA_LEARNING_QUESTIONS || []));
+        applyFilter();
+      });
+    }
+
+    list.addEventListener("change", (event) => {
+      const input = event.target.closest("input[data-learned-id]");
+      if (!input) return;
+      window.DIMStorage.markQuestionLearned(input.dataset.learnedId, input.checked);
+      const card = input.closest(".learning-card");
+      if (card) {
+        card.dataset.learned = String(input.checked);
+        card.classList.toggle("is-learned", input.checked);
+        const status = card.querySelector(".learned-status");
+        if (status) status.textContent = input.checked ? "Done" : "Mark learned";
+      }
+      const updated = window.DIMStorage.getTopicStats(topicId, window.JAVA_LEARNING_QUESTIONS || []);
+      updateTopicProgress(updated);
+
+      if (input.checked && card) {
+        applyFilter();
+        const allCards = Array.from(list.querySelectorAll(".learning-card"));
+        const currentIndex = allCards.indexOf(card);
+        const visibleCards = allCards.filter((item) => !item.hidden && item.dataset.learned !== "true");
+        const nextCard = visibleCards.find((item) => allCards.indexOf(item) > currentIndex) || visibleCards[0];
+        if (nextCard) {
+          window.requestAnimationFrame(() => nextCard.scrollIntoView({ behavior: "smooth", block: "center" }));
+        }
+      } else {
+        applyFilter();
+      }
+    });
+
+    applyFilter();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => renderPage(getTopicId()));
+})();
