@@ -2,24 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#4F46E5" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Interview Master" />
   <meta name="description" content="Track your Java interview preparation progress." />
   <title>My Progress | Developer Interview Master</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/progress.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
 </head>
 <body data-page="progress">
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="index.html" aria-label="Developer Interview Master home"><span class="brand-mark">&lt;/&gt;</span><span>Developer Interview Master</span></a>
       <button class="mobile-menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
-      <nav id="site-nav" class="site-nav" aria-label="Primary navigation"><a data-nav="home" href="index.html">Home</a><a data-nav="topics" href="topics.html">Topics</a><a data-nav="progress" href="progress.html">My Progress</a></nav>
+      <nav id="site-nav" class="site-nav" aria-label="Primary navigation"><a data-nav="home" href="index.html">Home</a><a data-nav="topics" href="topics.html">Topics</a><a data-nav="progress" href="progress.html">My Progress</a></nav><button class="install-app-button" type="button" hidden>Install app</button>
       <div class="header-search"><label class="sr-only" for="global-search">Search topics or questions</label><span class="search-icon" aria-hidden="true">⌕</span><input id="global-search" type="search" placeholder="Search topics or questions..." autocomplete="off" /><div id="search-results" class="search-results" role="listbox" aria-label="Search results"></div></div>
     </div>
   </header>
 
   <main class="page-main">
-    <section class="page-hero compact-hero"><div class="container page-hero-inner"><div><p class="eyebrow">Your preparation dashboard</p><h1>Progress that stays with you.</h1><p>Your learning state is saved in this browser. Come back whenever you are ready for the next focused session.</p></div><button id="reset-progress" class="button button-outline-danger" type="button">Reset progress</button></div></section>
+    <section class="page-hero compact-hero"><div class="container page-hero-inner"><div><p class="eyebrow">Your preparation dashboard</p><h1>Progress that stays with you.</h1><p>Your learning state is saved in this browser. Come back whenever you are ready for the next focused session.</p></div><button id="reset-progress" class="button button-outline-danger" type="button">Reset all progress</button></div></section>
     <section class="container progress-section"><div id="progress-stats" class="stats-grid"></div><div class="progress-layout"><div class="progress-panel"><div class="panel-heading"><div><p class="eyebrow">Topic completion</p><h2>Java roadmap</h2></div><a class="text-link" href="topics.html">Continue learning <span aria-hidden="true">→</span></a></div><div id="progress-topics" class="progress-topic-list"></div></div><aside class="progress-panel attempts-panel"><div class="panel-heading"><div><p class="eyebrow">Recent practice</p><h2>Quiz attempts</h2></div></div><div id="quiz-attempts"></div></aside></div></section>
   </main>
 

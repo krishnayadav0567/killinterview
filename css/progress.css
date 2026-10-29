@@ -1,20 +1,21 @@
-.progress-section { padding-top: 28px; padding-bottom: 48px; }
-.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 24px; }
-.stat-card, .progress-panel { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 14px; box-shadow: var(--shadow-sm); }
-.stat-card { padding: 18px; display: flex; flex-direction: column; gap: 4px; }
-.stat-card strong { font-size: 1.7rem; color: var(--color-primary); }
-.stat-card span { color: var(--color-text-muted); font-size: .88rem; }
-.progress-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .8fr); gap: 18px; }
-.progress-panel { padding: 22px; }
-.panel-heading { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 16px; }
-.panel-heading h2 { margin-bottom: 0; }
-.progress-topic-list, #quiz-attempts { display: grid; gap: 10px; }
-.progress-topic-row, .attempt-row { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(100px, 1.5fr) auto; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid #f3f4f6; color: var(--color-text); }
+/* Progress dashboard */
+.progress-section { padding-top: 34px; padding-bottom: 72px; }
+.stats-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px; }
+.stat-card { padding: 18px; }
+.stat-card strong { display: block; margin-bottom: 3px; color: var(--brand); font-size: 25px; line-height: 1.2; }
+.stat-card span { display: block; color: var(--text-secondary); font-size: 12px; line-height: 1.4; }
+.progress-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .85fr); gap: 18px; }
+.progress-panel { padding: 24px; }
+.panel-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px; }
+.panel-heading h2 { margin-bottom: 0; font-size: 22px; }
+.progress-topic-list, #quiz-attempts { display: grid; gap: 4px; }
+.progress-topic-row, .attempt-row { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(120px, 1.5fr) auto; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); padding: 14px 0; color: var(--text-primary); }
 .progress-topic-row:last-child, .attempt-row:last-child { border-bottom: 0; }
-.progress-topic-row small, .attempt-row small { display: block; color: var(--color-text-muted); font-weight: 400; }
-.progress-topic-meter { height: 8px; border-radius: 99px; background: #e5e7eb; overflow: hidden; }
-.progress-topic-meter i { display: block; height: 100%; background: var(--color-primary); }
+.progress-topic-row small, .attempt-row small { display: block; color: var(--text-secondary); font-weight: 400; }
+.progress-topic-meter { height: 8px; overflow: hidden; border-radius: 999px; background: var(--surface-secondary); }
+.progress-topic-meter i { display: block; height: 100%; border-radius: inherit; background: var(--brand); }
 .attempt-row { grid-template-columns: 1fr auto; }
 .compact-empty { margin: 0; padding: 20px; box-shadow: none; }
-@media (max-width: 800px) { .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .progress-layout { grid-template-columns: 1fr; } }
-@media (max-width: 520px) { .stats-grid { grid-template-columns: 1fr 1fr; } .progress-topic-row { grid-template-columns: 1fr auto; } .progress-topic-meter { grid-column: 1 / -1; grid-row: 2; } }
+@media (max-width: 1050px) { .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 800px) { .progress-layout { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stat-card { padding: 14px; } .stat-card strong { font-size: 21px; } .progress-topic-row { grid-template-columns: 1fr auto; } .progress-topic-meter { grid-column: 1 / -1; grid-row: 2; } .panel-heading { align-items: flex-start; flex-direction: column; } }

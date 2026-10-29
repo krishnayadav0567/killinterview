@@ -7,6 +7,29 @@
     return window.DIM ? window.DIM.formatCode(value) : escapeHTML(value || "");
   }
 
+  function highlightCode(value) {
+    const tokens = [];
+    const token = (className, text) => {
+      const placeholder = `@@CODE_TOKEN_${tokens.length}@@`;
+      tokens.push(`<span class="${className}">${formatCode(text)}</span>`);
+      return placeholder;
+    };
+    let highlighted = String(value || "")
+      .replace(/\/\/.*$/gm, (text) => token("code-comment", text))
+      .replace(/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g, (text) => token("code-string", text))
+      .replace(/\b(public|private|protected|static|final|class|interface|extends|implements|new|return|void|if|else|for|while|try|catch|throw|throws|synchronized|volatile)\b/g, (text) => token("code-keyword", text))
+      .replace(/\b(\d+)\b/g, (text) => token("code-number", text));
+    highlighted = formatCode(highlighted);
+    tokens.forEach((markup, index) => {
+      highlighted = highlighted.replace(`@@CODE_TOKEN_${index}@@`, markup);
+    });
+    return highlighted;
+  }
+
+  function renderCodeBlock(value, label = "Example") {
+    return `<div class="code-block"><div class="code-block-title"><span>${escapeHTML(label)}</span><button class="copy-code-button" type="button">Copy code</button></div><pre><code>${highlightCode(value)}</code></pre></div>`;
+  }
+
   function getTopicTheory(topicId) {
     return (window.JAVA_TOPIC_THEORY || {})[topicId] || null;
   }
@@ -15,7 +38,7 @@
     if (!theory) return `<div class="topic-theory-panel"><div class="empty-state"><h2>Theory is being prepared</h2><p>The complete guide for ${escapeHTML(topic.name)} will be added soon.</p></div></div>`;
     return `<div id="topic-theory" class="topic-theory-panel">
       <div class="theory-intro"><p class="eyebrow">Complete topic guide</p><h2>${escapeHTML(topic.name)} theory</h2><p>${escapeHTML(theory.introduction)}</p></div>
-      <div class="theory-sections">${theory.sections.map((section) => `<article class="theory-section"><h3>${escapeHTML(section.title)}</h3><p class="theory-summary">${escapeHTML(section.summary)}</p><ul class="theory-points">${section.points.map((point) => `<li>${escapeHTML(point)}</li>`).join("")}</ul><div class="theory-nuances"><strong>Important nuances</strong><ul>${section.nuances.map((nuance) => `<li>${escapeHTML(nuance)}</li>`).join("")}</ul></div>${section.code ? `<div class="code-block"><div class="code-block-title">Example</div><pre><code>${formatCode(section.code)}</code></pre></div>` : ""}</article>`).join("")}</div>
+      <div class="theory-sections">${theory.sections.map((section) => `<article class="theory-section"><h3>${escapeHTML(section.title)}</h3><p class="theory-summary">${escapeHTML(section.summary)}</p><ul class="theory-points">${section.points.map((point) => `<li>${escapeHTML(point)}</li>`).join("")}</ul><div class="theory-nuances"><strong>Important nuances</strong><ul>${section.nuances.map((nuance) => `<li>${escapeHTML(nuance)}</li>`).join("")}</ul></div>${section.code ? renderCodeBlock(section.code) : ""}</article>`).join("")}</div>
       <section class="theory-takeaways"><h3>Interview takeaways</h3><ul>${theory.takeaways.map((takeaway) => `<li>${escapeHTML(takeaway)}</li>`).join("")}</ul></section>
     </div>`;
   }
@@ -33,7 +56,7 @@
       </div>
       <p class="learning-answer">${escapeHTML(question.answer)}</p>
       <details open><summary>Explanation</summary><p>${escapeHTML(question.explanation)}</p></details>
-      ${question.codeExample ? `<div class="code-block"><div class="code-block-title">Example</div><pre><code>${formatCode(question.codeExample)}</code></pre></div>` : ""}
+      ${question.codeExample ? renderCodeBlock(question.codeExample) : ""}
       <div class="learning-details">
         ${question.realWorldUseCase ? `<div><strong>Real-world use</strong><p>${escapeHTML(question.realWorldUseCase)}</p></div>` : ""}
         ${question.commonMistakes ? `<div><strong>Common mistake</strong><p>${escapeHTML(question.commonMistakes)}</p></div>` : ""}
@@ -72,7 +95,11 @@
       hero.innerHTML = `<div class="topic-hero-copy"><p class="eyebrow">Java learning path</p><h1>${escapeHTML(topic.name)}</h1><p>${escapeHTML(topic.description)}</p><div class="topic-hero-actions"><a class="button button-primary" href="${quizUrl}">Practice quiz <span aria-hidden="true">→</span></a><span class="topic-progress-copy"><span><strong id="topic-learned-count">${stats.learned}</strong>/${questions.length} learned</span><button id="reset-topic-progress" class="button button-outline-danger topic-reset-button" type="button" ${stats.learned ? "" : "disabled"}>Reset learned</button></span></div></div><div class="topic-progress-ring"><strong id="topic-progress-percent">${stats.percentage}%</strong><small>complete</small></div>`;
     }
     if (content) {
-      content.innerHTML = `<div class="learning-toolbar"><div class="section-tabs" role="group" aria-label="Learning sections"><button class="section-tab active" type="button" data-section="theory">Theory</button><button class="section-tab" type="button" data-section="what">What</button><button class="section-tab" type="button" data-section="why">Why</button><button class="section-tab" type="button" data-section="how">How</button><button class="section-tab" type="button" data-section="all">All</button><button class="section-tab" type="button" data-section="done">Done</button></div><div><p id="learning-eyebrow" class="eyebrow">Topic theory</p><h2 id="learning-count" aria-live="polite">Complete guide to ${escapeHTML(topic.name)}</h2></div></div>${renderTheory(topic, theory)}<div id="learning-list" class="learning-list" hidden>${questions.map(renderQuestion).join("")}</div>`;
+      const availableTopics = (window.JAVA_TOPICS || []).filter((item) => item.contentAvailable).sort((a, b) => a.order - b.order);
+      const currentIndex = availableTopics.findIndex((item) => item.id === topicId);
+      const previousTopic = currentIndex > 0 ? availableTopics[currentIndex - 1] : null;
+      const nextTopic = currentIndex >= 0 && currentIndex < availableTopics.length - 1 ? availableTopics[currentIndex + 1] : null;
+      content.innerHTML = `<div class="learning-toolbar"><div class="section-tabs" role="group" aria-label="Learning sections"><button class="section-tab active" type="button" data-section="theory">Theory</button><button class="section-tab" type="button" data-section="what">What</button><button class="section-tab" type="button" data-section="why">Why</button><button class="section-tab" type="button" data-section="how">How</button><button class="section-tab" type="button" data-section="all">All</button><button class="section-tab" type="button" data-section="done">Done</button></div><div><p id="learning-eyebrow" class="eyebrow">Topic theory</p><h2 id="learning-count" aria-live="polite">Complete guide to ${escapeHTML(topic.name)}</h2></div></div>${renderTheory(topic, theory)}<div id="learning-list" class="learning-list" hidden>${questions.map(renderQuestion).join("")}</div><nav class="topic-navigation" aria-label="Topic navigation">${previousTopic ? `<a class="button button-secondary" href="${window.DIM.getTopicUrl(previousTopic.id)}">← ${escapeHTML(previousTopic.name)}</a>` : `<span></span>`}${nextTopic ? `<a class="button button-primary" href="${window.DIM.getTopicUrl(nextTopic.id)}">${escapeHTML(nextTopic.name)} →</a>` : `<a class="button button-secondary" href="topics.html">Back to topics</a>`}</nav>`;
     }
 
     const list = document.getElementById("learning-list");
@@ -102,6 +129,22 @@
       const questionText = `${questionCount} ${selectedSection === "done" ? "completed " : ""}interview question${questionCount === 1 ? "" : "s"}`;
       if (learningEyebrow) learningEyebrow.textContent = sectionLabels[selectedSection] || "Learn by angle";
       if (learningCount) learningCount.textContent = questionText;
+    }
+
+    function scrollCardBelowHeader(card) {
+      window.requestAnimationFrame(() => {
+        const header = document.querySelector(".site-header");
+        const headerBottom = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+        const viewportPadding = 16;
+        const safeTop = headerBottom + viewportPadding;
+        const safeBottom = window.innerHeight - viewportPadding;
+        const cardRect = card.getBoundingClientRect();
+
+        if (cardRect.top >= safeTop && cardRect.bottom <= safeBottom) return;
+
+        const targetTop = window.scrollY + cardRect.top - safeTop;
+        window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+      });
     }
 
     function applyFilter() {
@@ -139,6 +182,19 @@
       });
     }
 
+    content.addEventListener("click", async (event) => {
+      const copyButton = event.target.closest(".copy-code-button");
+      if (!copyButton) return;
+      const code = copyButton.closest(".code-block")?.querySelector("code")?.textContent || "";
+      try {
+        await navigator.clipboard.writeText(code);
+        copyButton.textContent = "Copied";
+      } catch (error) {
+        copyButton.textContent = "Select code";
+      }
+      window.setTimeout(() => { copyButton.textContent = "Copy code"; }, 1400);
+    });
+
     list.addEventListener("change", (event) => {
       const input = event.target.closest("input[data-learned-id]");
       if (!input) return;
@@ -160,7 +216,7 @@
         const visibleCards = allCards.filter((item) => !item.hidden && item.dataset.learned !== "true");
         const nextCard = visibleCards.find((item) => allCards.indexOf(item) > currentIndex) || visibleCards[0];
         if (nextCard) {
-          window.requestAnimationFrame(() => nextCard.scrollIntoView({ behavior: "smooth", block: "center" }));
+          scrollCardBelowHeader(nextCard);
         }
       } else {
         applyFilter();

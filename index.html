@@ -2,11 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#4F46E5" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Interview Master" />
   <meta name="description" content="Developer Interview Master - a practical Java interview preparation dashboard." />
   <title>Developer Interview Master</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/topics.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
 </head>
 <body data-page="home">
   <header class="site-header">
@@ -21,6 +28,7 @@
         <a data-nav="topics" href="topics.html">Topics</a>
         <a data-nav="progress" href="progress.html">My Progress</a>
       </nav>
+      <button class="install-app-button" type="button" hidden>Install app</button>
       <div class="header-search">
         <label class="sr-only" for="global-search">Search topics and questions</label>
         <span class="search-icon" aria-hidden="true">⌕</span>
@@ -79,6 +87,36 @@
           <a class="text-link" href="topics.html">View all topics <span aria-hidden="true">→</span></a>
         </div>
         <div id="technology-grid" class="technology-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="container">
+        <div class="section-heading-row">
+          <div><p class="eyebrow">Pick up where you left off</p><h2>Continue learning</h2></div>
+          <a class="text-link" href="progress.html">View progress <span aria-hidden="true">→</span></a>
+        </div>
+        <div id="continue-learning-grid" class="home-card-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section-block section-muted">
+      <div class="container">
+        <div class="section-heading-row">
+          <div><p class="eyebrow">Build your foundation</p><h2>Popular topics</h2></div>
+          <a class="text-link" href="topics.html">Browse all Java topics <span aria-hidden="true">→</span></a>
+        </div>
+        <div id="popular-topics-grid" class="home-card-grid" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="container">
+        <div class="section-heading-row">
+          <div><p class="eyebrow">Your preparation at a glance</p><h2>Learning progress</h2></div>
+          <a class="text-link" href="progress.html">Open dashboard <span aria-hidden="true">→</span></a>
+        </div>
+        <div id="home-progress" class="home-progress-panel" aria-live="polite"></div>
       </div>
     </section>
 

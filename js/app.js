@@ -56,6 +56,40 @@
     const year = document.getElementById("current-year");
     if (year) year.textContent = String(new Date().getFullYear());
     initThemeToggle();
+    initInstallPrompt();
+    registerServiceWorker();
+  }
+
+  function initInstallPrompt() {
+    let deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredPrompt = event;
+      const button = document.querySelector(".install-app-button");
+      if (button) {
+        button.hidden = false;
+        button.setAttribute("aria-label", "Install Developer Interview Master");
+        button.title = "Install Developer Interview Master";
+      }
+    });
+    document.addEventListener("click", async (event) => {
+      const button = event.target.closest(".install-app-button");
+      if (!button || !deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      button.hidden = true;
+    });
+    window.addEventListener("appinstalled", () => {
+      const button = document.querySelector(".install-app-button");
+      if (button) button.hidden = true;
+    });
+  }
+
+  function registerServiceWorker() {
+    if ("serviceWorker" in navigator && (window.location.protocol === "https:" || window.location.hostname === "localhost")) {
+      navigator.serviceWorker.register("./sw.js").catch(() => { /* app remains usable online */ });
+    }
   }
 
   function initThemeToggle() {
@@ -71,6 +105,7 @@
     button.type = "button";
     button.className = "theme-toggle";
     button.setAttribute("aria-label", "Enable dark mode");
+    button.title = "Toggle light and dark mode";
 
     function updateButton() {
       const dark = root.dataset.theme === "dark";
@@ -156,8 +191,32 @@
     const questionCount = document.getElementById("hero-question-count");
     if (topicCount) topicCount.textContent = String(topics().length);
     if (questionCount) questionCount.textContent = String(learningQuestions().length);
+
+    renderHomeLearning();
+  }
+
+  function renderHomeLearning() {
+    const continueGrid = document.getElementById("continue-learning-grid");
+    const popularGrid = document.getElementById("popular-topics-grid");
+    const progressPanel = document.getElementById("home-progress");
+    const availableTopics = topics().filter((topic) => topic.contentAvailable);
+    const questions = learningQuestions();
+    const topicStats = availableTopics.map((topic) => ({ topic, stats: window.DIMStorage.getTopicStats(topic.id, questions) }));
+    const started = topicStats.filter(({ stats }) => stats.started).sort((a, b) => b.stats.percentage - a.stats.percentage);
+    const popular = availableTopics.slice(0, 3);
+    const renderCard = ({ topic, stats }) => `<article class="home-learning-card"><p class="eyebrow">${stats.percentage ? "Continue" : "Start here"}</p><h3>${escapeHTML(topic.name)}</h3><p>${escapeHTML(topic.description)}</p><span><strong>${stats.learned}/${stats.totalQuestions}</strong> learned · ${stats.percentage}% complete</span><span class="progress-topic-meter"><i style="width:${stats.percentage}%"></i></span><a class="button button-secondary" href="${getTopicUrl(topic.id)}">Open topic <span aria-hidden="true">→</span></a></article>`;
+    if (continueGrid) continueGrid.innerHTML = (started.length ? started.slice(0, 3) : topicStats.slice(0, 3)).map(renderCard).join("");
+    if (popularGrid) popularGrid.innerHTML = popular.map((topic) => ({ topic, stats: window.DIMStorage.getTopicStats(topic.id, questions) })).map(renderCard).join("");
+    const learned = topicStats.reduce((sum, item) => sum + item.stats.learned, 0);
+    const total = topicStats.reduce((sum, item) => sum + item.stats.totalQuestions, 0);
+    const percentage = total ? Math.round((learned / total) * 100) : 0;
+    if (progressPanel) progressPanel.innerHTML = `<div class="home-progress-copy"><p class="eyebrow">Saved in this browser</p><h3>${learned} of ${total} questions learned</h3><p>Keep your momentum across theory, question practice, and quizzes.</p><div class="home-progress-bar"><span style="width:${percentage}%"></span></div></div><div><div class="home-progress-value">${percentage}%</div><div class="home-progress-actions"><a class="button button-primary" href="progress.html">View progress</a><a class="button button-secondary" href="topics.html">Explore topics</a></div></div>`;
   }
 
   window.DIM = { escapeHTML, formatCode, getTopic, getTopicQuestions, getTopicUrl, getQuizUrl, getTopicStatus, renderSearchResults };
-  document.addEventListener("DOMContentLoaded", () => { initNavigation(); initGlobalSearch(); initHome(); });
+  document.addEventListener("DOMContentLoaded", () => {
+    initNavigation();
+    initGlobalSearch();
+    initHome();
+  });
 })();

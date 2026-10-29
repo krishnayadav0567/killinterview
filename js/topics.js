@@ -29,6 +29,7 @@
         <h3>${escapeHTML(topic.name)}</h3>
         <p>${escapeHTML(topic.description)}</p>
         <div class="topic-card-meta">
+          <span><strong>${stats.totalQuestions}</strong> questions</span>
           <span><strong>${stats.learned}/${stats.totalQuestions}</strong> learned</span>
           <span><strong>${stats.percentage}%</strong> complete</span>
         </div>
