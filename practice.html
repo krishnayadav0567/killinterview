@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#4F46E5" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Interview Master" />
+  <meta name="description" content="Practice Java coding questions, run your code, and receive AI feedback." />
+  <title>Java Practice Ground | Developer Interview Master</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/practice.css?v=18" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+</head>
+<body data-page="topics">
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="Developer Interview Master home"><span class="brand-mark">&lt;/&gt;</span><span>Developer Interview Master</span></a>
+      <button class="mobile-menu-button" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <nav id="site-nav" class="site-nav" aria-label="Primary navigation"><a data-nav="home" href="index.html">Home</a><a data-nav="topics" href="topics.html">Topics</a><a data-nav="progress" href="progress.html">My Progress</a></nav>
+      <button class="install-app-button" type="button" hidden>Install app</button>
+      <div id="auth-container" class="auth-container" aria-live="polite"></div>
+      <div class="header-search"><label class="sr-only" for="global-search">Search topics or questions</label><span class="search-icon" aria-hidden="true">⌕</span><input id="global-search" type="search" placeholder="Search topics or questions..." autocomplete="off" /><div id="search-results" class="search-results" role="listbox" aria-label="Search results"></div></div>
+    </div>
+  </header>
+
+  <main class="page-main practice-page">
+    <div class="container practice-breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">›</span><a href="topics.html">Java</a><span aria-hidden="true">›</span><span>Practice Ground</span></div>
+    <section class="container practice-hero">
+      <div>
+        <p class="eyebrow">Java coding practice</p>
+        <h1>Java Practice Ground</h1>
+        <p>Choose a question, write Java code, run it with the compiler, and ask AI to review your solution.</p>
+      </div>
+      <div class="practice-hero-badge"><span>☕</span><strong>Java only</strong><small>Compiler + AI review</small></div>
+    </section>
+
+    <section class="container practice-layout" aria-label="Java practice workspace">
+      <div class="practice-navigation-bar">
+        <nav id="practice-question-list" class="practice-question-nav panel" aria-label="Choose practice question"></nav>
+        <button id="practice-fullscreen" class="practice-fullscreen-button button button-secondary" type="button" aria-pressed="false" title="Open fullscreen practice mode"><span aria-hidden="true">⛶</span><span id="practice-fullscreen-label">Fullscreen</span></button>
+      </div>
+
+      <section class="practice-workspace">
+        <article class="practice-problem panel">
+          <div class="practice-problem-header"><div><p id="practice-question-category" class="eyebrow">Java coding question</p><h2 id="practice-question-title">Loading question...</h2></div><span id="practice-question-difficulty" class="practice-difficulty">—</span></div>
+          <p id="practice-question-prompt" class="practice-prompt"></p>
+          <div class="practice-requirements"><strong>What your solution should do</strong><ul id="practice-requirements-list"></ul></div>
+          <div id="practice-example" class="practice-example"></div>
+        </article>
+
+        <div id="practice-resizer-left" class="practice-resizer" role="separator" aria-orientation="vertical" aria-label="Resize question and compiler panels" aria-valuemin="260" aria-valuemax="900" aria-valuenow="280" tabindex="0"></div>
+
+        <article class="practice-editor-card panel">
+          <div class="practice-card-heading"><div><p class="eyebrow">Your solution</p><h2>Write Java code</h2></div><span id="practice-editor-status" class="practice-status">Ready</span></div>
+          <label class="sr-only" for="practice-code">Java solution code</label>
+          <div class="practice-editor-shell" role="group" aria-label="Java code editor">
+            <div class="practice-editor-toolbar"><div class="practice-editor-file"><span class="practice-editor-dot" aria-hidden="true"></span><span>Main.java</span></div><div class="practice-editor-toolbar-actions"><span class="practice-editor-language">Java 17</span><button id="practice-format" class="practice-editor-format" type="button" title="Format Java code">Format</button></div></div>
+            <div class="practice-editor-body">
+              <div id="practice-code-lines" class="practice-code-lines" aria-hidden="true"></div>
+              <div class="practice-code-stage">
+                <pre id="practice-code-highlight" class="practice-code-highlight" aria-hidden="true"></pre>
+                <textarea id="practice-code" class="practice-code-editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="practice-actions"><button id="practice-reset" class="button button-secondary" type="button">Reset code</button><div class="practice-actions-right"><button id="practice-run" class="button button-primary" type="button">Run code <span aria-hidden="true">▶</span></button><button id="practice-check" class="button button-ai" type="button" disabled>Check with AI <span aria-hidden="true">✦</span></button></div></div>
+        </article>
+
+        <div id="practice-resizer-right" class="practice-resizer" role="separator" aria-orientation="vertical" aria-label="Resize compiler and results panels" aria-valuemin="240" aria-valuemax="900" aria-valuenow="270" tabindex="0"></div>
+
+        <div class="practice-results-column">
+          <article class="practice-input-card panel">
+            <div class="practice-card-heading"><div><p class="eyebrow">Program input</p><h2>Input</h2></div><span class="practice-status">Optional</span></div>
+            <div class="practice-input-row"><label for="practice-input">Standard input <span>(optional)</span></label><textarea id="practice-input" class="practice-input-editor" rows="2" placeholder="Enter stdin for your program, if needed"></textarea></div>
+          </article>
+
+          <article class="practice-output-card panel">
+            <div class="practice-card-heading"><div><p class="eyebrow">Compiler result</p><h2>Output</h2></div><span id="practice-compile-status" class="practice-status">Not run yet</span></div>
+            <pre id="practice-output" class="practice-output" aria-live="polite">Run your code to see compiler output here.</pre>
+          </article>
+
+          <article class="practice-feedback-card panel">
+            <div class="practice-card-heading"><div><p class="eyebrow">AI review</p><h2>Feedback</h2></div><span id="practice-ai-status" class="practice-status">Waiting for a run</span></div>
+            <div id="practice-feedback" class="practice-feedback-empty">Run your code first, then choose <strong>Check with AI</strong> to receive feedback.</div>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="container footer-inner"><span>© <span id="current-year"></span> Developer Interview Master</span><span>Java practice · Learn by doing.</span></div></footer>
+
+  <script src="data/java-topics.js"></script>
+  <script src="data/java/practice-config.js"></script>
+  <script src="data/java/practice-questions.js?v=18"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js?v=18"></script>
+  <script src="js/practice.js?v=18"></script>
+</body>
+</html>

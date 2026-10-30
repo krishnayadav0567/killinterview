@@ -1,10 +1,11 @@
-const CACHE_NAME = "developer-interview-master-v9";
+const CACHE_NAME = "developer-interview-master-v18";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./topics.html",
   "./topic.html",
   "./quiz.html",
+  "./practice.html",
   "./progress.html",
   "./manifest.webmanifest",
   "./css/style.css",
@@ -12,6 +13,7 @@ const APP_SHELL = [
   "./css/topic.css",
   "./css/quiz.css",
   "./css/progress.css",
+  "./css/practice.css",
   "./js/app.js",
   "./js/storage.js",
   "./js/auth-config.js",
@@ -20,7 +22,10 @@ const APP_SHELL = [
   "./js/topic.js",
   "./js/quiz.js",
   "./js/progress.js",
+  "./js/practice.js",
   "./data/java-topics.js",
+  "./data/java/practice-config.js",
+  "./data/java/practice-questions.js",
   "./data/java/index.js",
   "./data/java/theory.js",
   "./data/java/fundamentals/index.js",
@@ -57,7 +62,27 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith((async () => {
     const url = new URL(event.request.url);
-    const cacheRequest = new Request(url.origin + url.pathname);
+    const isPracticeAsset = [
+      "/practice.html",
+      "/css/practice.css",
+      "/js/practice.js",
+      "/data/java/practice-questions.js",
+      "/data/java/practice-config.js"
+    ].includes(url.pathname);
+    const cacheRequest = isPracticeAsset ? event.request : new Request(url.origin + url.pathname);
+    if (isPracticeAsset) {
+      try {
+        const response = await fetch(event.request, { cache: "no-store" });
+        if (response.ok && url.origin === self.location.origin) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(cacheRequest, response.clone());
+        }
+        return response;
+      } catch (error) {
+        const cachedPracticeAsset = await caches.match(cacheRequest);
+        if (cachedPracticeAsset) return cachedPracticeAsset;
+      }
+    }
     const cached = await caches.match(cacheRequest);
     if (cached) return cached;
     try {

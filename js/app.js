@@ -86,9 +86,20 @@
     });
   }
 
-  function registerServiceWorker() {
+  async function registerServiceWorker() {
     if ("serviceWorker" in navigator && (window.location.protocol === "https:" || window.location.hostname === "localhost")) {
-      navigator.serviceWorker.register("./sw.js").catch(() => { /* app remains usable online */ });
+      try {
+        const registration = await navigator.serviceWorker.register("./sw.js?v=18");
+        await registration.update();
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      } catch (error) {
+        // The app remains usable online when service-worker registration is unavailable.
+      }
     }
   }
 

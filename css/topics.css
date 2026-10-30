@@ -14,6 +14,10 @@
 .filter-tab.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
 .dashboard-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
 .dashboard-summary > span { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); padding: 8px 12px; color: var(--text-secondary); font-size: 13px; }
+.java-practice-callout { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 28px; border: 1px solid var(--brand-border); border-radius: var(--radius-lg); background: var(--brand-light); padding: 24px; }
+.java-practice-callout h2 { margin-bottom: 5px; }
+.java-practice-callout p:last-child { margin-bottom: 0; color: var(--text-secondary); }
+.java-practice-callout .button { flex: 0 0 auto; }
 .topics-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .topic-card { display: flex; flex-direction: column; gap: 14px; padding: 22px; cursor: pointer; }
 .topic-card:hover { border-color: var(--brand-border); box-shadow: var(--shadow-hover); transform: translateY(-2px); transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition); }
@@ -33,4 +37,4 @@
 .status-completed, .card-status-ready { background: var(--success-bg); color: var(--success); }
 .status-coming-soon { background: var(--warning-bg); color: var(--warning); }
 @media (max-width: 960px) { .topics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 620px) { .topics-grid { grid-template-columns: 1fr; } .dashboard-toolbar { align-items: stretch; flex-direction: column; } .toolbar-search { max-width: none; } .filter-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; } .filter-tab { white-space: nowrap; } }
+@media (max-width: 620px) { .java-practice-callout { align-items: flex-start; flex-direction: column; } .java-practice-callout .button { width: 100%; } .topics-grid { grid-template-columns: 1fr; } .dashboard-toolbar { align-items: stretch; flex-direction: column; } .toolbar-search { max-width: none; } .filter-tabs { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; } .filter-tab { white-space: nowrap; } }
