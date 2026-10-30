@@ -1,0 +1,11 @@
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+
+[[redirects]]
+  from = "/api/java/compile"
+  to = "/.netlify/functions/java-compile"
+  status = 200
+  force = true
