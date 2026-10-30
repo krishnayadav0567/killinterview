@@ -4,12 +4,13 @@ const path = require("node:path");
 const { URL } = require("node:url");
 
 const ROOT_DIR = __dirname;
-const PORT = Number(process.env.PORT || 3000);
-const ONLINECOMPILER_RUN_URL = process.env.ONLINECOMPILER_RUN_URL || "https://api.onlinecompiler.io/api/run-code-sync/";
-const ONLINECOMPILER_COMPILER = process.env.ONLINECOMPILER_COMPILER || "openjdk-25";
 const MAX_REQUEST_BYTES = 120 * 1024;
 
 loadDotEnv(path.join(ROOT_DIR, ".env"));
+
+const PORT = Number(process.env.PORT || 3000);
+const ONLINECOMPILER_RUN_URL = process.env.ONLINECOMPILER_RUN_URL;
+const ONLINECOMPILER_COMPILER = process.env.ONLINECOMPILER_COMPILER;
 
 function loadDotEnv(filePath) {
   if (!fs.existsSync(filePath)) return;
@@ -104,10 +105,10 @@ function readJsonBody(request) {
 }
 
 async function runJavaCode(request, response) {
-  if (!process.env.ONLINECOMPILER_API_KEY) {
+  if (!process.env.ONLINECOMPILER_API_KEY || !ONLINECOMPILER_RUN_URL || !ONLINECOMPILER_COMPILER) {
     sendJson(response, 503, {
       error: "OnlineCompiler is not configured.",
-      message: "Set ONLINECOMPILER_API_KEY in .env or the server environment before running Java code."
+      message: "Set ONLINECOMPILER_API_KEY, ONLINECOMPILER_RUN_URL, and ONLINECOMPILER_COMPILER in .env or the server environment before running Java code."
     });
     return;
   }
@@ -158,8 +159,7 @@ async function runJavaCode(request, response) {
 
     sendJson(response, 200, {
       ...result,
-      compileSuccess: result.status === "success" && Number(result.exit_code || 0) === 0,
-      compiler: ONLINECOMPILER_COMPILER
+      compileSuccess: result.status === "success" && Number(result.exit_code || 0) === 0
     });
   } catch (error) {
     sendJson(response, 502, {

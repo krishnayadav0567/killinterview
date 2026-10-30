@@ -1,6 +1,4 @@
 const MAX_REQUEST_BYTES = 120 * 1024;
-const DEFAULT_RUN_URL = "https://api.onlinecompiler.io/api/run-code-sync/";
-const DEFAULT_COMPILER = "openjdk-25";
 
 function getMethod(event) {
   return event.httpMethod || event.requestContext?.http?.method || "GET";
@@ -57,10 +55,14 @@ function readJsonBody(event) {
 }
 
 async function runJavaCode(event) {
-  if (!process.env.ONLINECOMPILER_API_KEY) {
+  const apiKey = process.env.ONLINECOMPILER_API_KEY;
+  const runUrl = process.env.ONLINECOMPILER_RUN_URL;
+  const compiler = process.env.ONLINECOMPILER_COMPILER;
+
+  if (!apiKey || !runUrl || !compiler) {
     return jsonResponse(event, 503, {
       error: "OnlineCompiler is not configured.",
-      message: "Add ONLINECOMPILER_API_KEY to the Netlify Functions environment variables and redeploy."
+      message: "Add ONLINECOMPILER_API_KEY, ONLINECOMPILER_RUN_URL, and ONLINECOMPILER_COMPILER to the Netlify Functions environment variables and redeploy."
     });
   }
 
@@ -77,14 +79,11 @@ async function runJavaCode(event) {
     return jsonResponse(event, 400, { error: "Java code is required." });
   }
 
-  const runUrl = process.env.ONLINECOMPILER_RUN_URL || DEFAULT_RUN_URL;
-  const compiler = process.env.ONLINECOMPILER_COMPILER || DEFAULT_COMPILER;
-
   try {
     const upstream = await fetch(runUrl, {
       method: "POST",
       headers: {
-        Authorization: process.env.ONLINECOMPILER_API_KEY,
+        Authorization: apiKey,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ compiler, code, input })
@@ -107,8 +106,7 @@ async function runJavaCode(event) {
 
     return jsonResponse(event, 200, {
       ...result,
-      compileSuccess: result.status === "success" && Number(result.exit_code || 0) === 0,
-      compiler
+      compileSuccess: result.status === "success" && Number(result.exit_code || 0) === 0
     });
   } catch (error) {
     return jsonResponse(event, 502, {
