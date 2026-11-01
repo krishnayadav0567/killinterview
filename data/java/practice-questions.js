@@ -30,15 +30,16 @@ window.JAVA_PRACTICE_QUESTIONS = [
     "topicIndex": 1,
     "category": "Java Syntax Foundation",
     "difficulty": "Practice",
-    "prompt": "Write a Java solution for: Print the length of an integer array.",
-    "starterCode": "public class Main {\n    public static void main(String[] args) {\n        // Q2: Print the length of an integer array.\n        // Input/setup: arr = {4, 8, 12, 16}\n        // Expected output/behavior: 4\n\n        // Write your solution here\n    }\n}",
+    "prompt": "Write a Java solution for: Read an integer array and print its length.",
+    "starterCode": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        int n = scanner.nextInt();\n        int[] arr = new int[n];\n\n        for (int i = 0; i < n; i++) {\n            arr[i] = scanner.nextInt();\n        }\n\n        // Q2: Print the length of an integer array.\n        // Input format: first n, followed by n integers.\n        // Expected output/behavior: 4\n\n        // Write your solution here\n    }\n}",
+    "input": "4\n4 8 12 16\n",
     "requirements": [
       "Use valid Java code with a public class named Main.",
-      "Use this input/setup: arr = {4, 8, 12, 16}",
+      "Read standard input where the first value is n and the next n values are the array elements.",
       "Match this expected output/behavior: 4"
     ],
     "example": {
-      "input": "arr = {4, 8, 12, 16}",
+      "input": "4\n4 8 12 16",
       "output": "4"
     }
   },

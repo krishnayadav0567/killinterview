@@ -87,7 +87,8 @@
     "wrapper-classes": { learning: 30, quiz: 20 },
     "oop-concepts": { learning: 30, quiz: 20 },
     inheritance: { learning: 30, quiz: 20 },
-    multithreading: { learning: 90, quiz: 60 }
+    multithreading: { learning: 90, quiz: 60 },
+    "design-patterns": { learning: 40, quiz: 24 }
   };
   window.JAVA_TOPICS = topicNames.map(([id, name], index) => ({
     id,

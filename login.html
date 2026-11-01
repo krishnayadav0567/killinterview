@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0F172A" />
+  <meta name="description" content="Sign in to save your Developer Interview Master progress across devices." />
+  <title>Sign in | Developer Interview Master</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/login.css" />
+</head>
+<body class="auth-page" data-page="login">
+  <header class="auth-header">
+    <div class="container auth-header-inner">
+      <a class="brand" href="index.html" aria-label="Developer Interview Master home">
+        <span class="brand-mark">&lt;/&gt;</span>
+        <span>Developer Interview Master</span>
+      </a>
+      <a class="auth-back-link" href="index.html">Back to home <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-orbit auth-orbit-one" aria-hidden="true"></div>
+    <div class="auth-orbit auth-orbit-two" aria-hidden="true"></div>
+
+    <section class="container auth-shell" aria-labelledby="login-title">
+      <div class="auth-intro">
+        <p class="auth-kicker"><span class="auth-kicker-dot" aria-hidden="true"></span> Your preparation, kept in sync</p>
+        <h1 id="login-title">Pick up exactly where your thinking left off.</h1>
+        <p class="auth-lede">Sign in once and keep your Java topics, quiz attempts, and coding practice connected wherever you prepare.</p>
+
+        <div class="auth-proof-grid" aria-label="Account benefits">
+          <article class="auth-proof-card">
+            <span class="auth-proof-icon" aria-hidden="true">↗</span>
+            <div><strong>Keep momentum</strong><span>Return to your current learning path.</span></div>
+          </article>
+          <article class="auth-proof-card">
+            <span class="auth-proof-icon auth-proof-icon-green" aria-hidden="true">✓</span>
+            <div><strong>Track what sticks</strong><span>Save quizzes and practice milestones.</span></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-card-topline"><span class="auth-card-label">Developer Interview Master</span><span class="auth-card-status"><i aria-hidden="true"></i> Ready when you are</span></div>
+        <div class="auth-card-heading">
+          <div class="auth-card-logo" aria-hidden="true">&lt;/&gt;</div>
+          <div><p class="eyebrow">Welcome back</p><h2>Sign in to continue</h2></div>
+        </div>
+        <p class="auth-card-copy">Use your Google account to access your saved preparation workspace.</p>
+
+        <button class="auth-google-button" id="google-sign-in-btn" type="button">
+          <span class="auth-google-icon" aria-hidden="true">G</span>
+          <span>Continue with Google</span>
+          <span class="auth-google-arrow" aria-hidden="true">→</span>
+        </button>
+        <div id="auth-container" hidden aria-live="polite"></div>
+        <p id="auth-status" class="auth-status" role="status" aria-live="polite"></p>
+
+        <div class="auth-divider"><span>or</span></div>
+        <a class="auth-guest-link" href="index.html">Continue as guest <span aria-hidden="true">→</span></a>
+        <p class="auth-privacy">No password to remember. Google handles authentication securely.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="auth-footer">
+    <div class="container auth-footer-inner">
+      <span>© <span id="current-year"></span> Developer Interview Master</span>
+      <span>Learn clearly. Practice deliberately.</span>
+    </div>
+  </footer>
+
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  <script src="js/auth-config.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const button = document.getElementById("google-sign-in-btn");
+      const status = document.getElementById("auth-status");
+      if (!button || !status) return;
+
+      const defaultLabel = button.innerHTML;
+      const setStatus = (message, kind = "") => {
+        status.textContent = message;
+        status.className = `auth-status${kind ? ` auth-status-${kind}` : ""}`;
+      };
+
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        button.classList.add("is-loading");
+        button.innerHTML = '<span class="auth-spinner" aria-hidden="true"></span><span>Opening Google…</span>';
+        setStatus("Waiting for Google sign-in…");
+
+        try {
+          if (!window.DIMAuth || !window.DIMAuth.getProvider()) {
+            throw new Error("Google sign-in is not configured yet. Add the Firebase web app values in js/firebase-config.js, then reload this page.");
+          }
+          await window.DIMAuth.signIn();
+          setStatus("Google sign-in started. Complete the account selection to continue.", "success");
+        } catch (error) {
+          button.disabled = false;
+          button.classList.remove("is-loading");
+          button.innerHTML = defaultLabel;
+          setStatus(error.message || "Google sign-in failed. Please try again.", "error");
+        }
+      });
+
+      window.addEventListener("dim:auth-change", (event) => {
+        if (!event.detail?.user) return;
+        button.disabled = true;
+        button.classList.remove("is-loading");
+        button.innerHTML = '<span class="auth-google-icon" aria-hidden="true">✓</span><span>Signed in successfully</span><span class="auth-google-arrow" aria-hidden="true">→</span>';
+        setStatus("You’re signed in. Redirecting to your dashboard…", "success");
+        window.setTimeout(() => { window.location.href = "index.html"; }, 500);
+      });
+    });
+  </script>
+</body>
+</html>

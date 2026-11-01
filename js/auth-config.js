@@ -1,5 +1,6 @@
-// Set this to the OAuth 2.0 Web client ID from Google Cloud Console.
-// Leave it empty while developing to keep the app usable without sign-in.
+// Optional fallback configuration for Google Identity Services.
+// Firebase Google sign-in is preferred when js/firebase-config.js is complete.
+// Leave this empty unless you intentionally use the GIS fallback.
 window.DIM_AUTH_CONFIG = {
   googleClientId: ""
 };

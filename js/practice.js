@@ -1,8 +1,7 @@
 (function () {
   const config = window.JAVA_PRACTICE_CONFIG || {};
   const questions = Array.isArray(window.JAVA_PRACTICE_QUESTIONS) ? window.JAVA_PRACTICE_QUESTIONS : [];
-  const attemptStorageKey = "developer-interview-java-practice-attempts-v1";
-  const state = { questionIndex: 0, lastCompile: null, busy: false };
+  const state = { questionIndex: 0, lastCompile: null, lastSubmission: null, busy: false };
 
   function byId(id) { return document.getElementById(id); }
 
@@ -16,6 +15,41 @@
   }
 
   function currentQuestion() { return questions[state.questionIndex] || null; }
+
+  function getPracticeProgress(questionId) {
+    return questionId && window.DIMStorage?.getPracticeProgress
+      ? window.DIMStorage.getPracticeProgress(questionId)
+      : null;
+  }
+
+  function formatVerdict(verdict) {
+    if (verdict === "judge0_error") return "Judge unavailable";
+    return String(verdict || "").split("_").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ") || "Not submitted";
+  }
+
+  function verdictClass(verdict) {
+    return String(verdict || "").toLowerCase().replace(/[^a-z0-9]+/g, "-") || "unknown";
+  }
+
+  function savePracticeDraft(questionId, code, input) {
+    if (!questionId || !window.DIMStorage?.savePracticeDraft) return;
+    window.DIMStorage.savePracticeDraft(questionId, { code, input });
+  }
+
+  function collapseExactDuplicateMainCode(source) {
+    const normalized = String(source || "").replace(/\r\n?/g, "\n");
+    const firstIndex = normalized.indexOf("public class Main");
+    if (firstIndex < 0) return source;
+    const secondIndex = normalized.indexOf("public class Main", firstIndex + "public class Main".length);
+    if (secondIndex < 0) return source;
+    const prefix = normalized.slice(0, firstIndex);
+    const normalizeProgram = (program) => program
+      .replace(/[ \t]+$/gm, "")
+      .trim();
+    const firstProgram = normalizeProgram(normalized.slice(firstIndex, secondIndex));
+    const secondProgram = normalizeProgram(normalized.slice(secondIndex));
+    return firstProgram && firstProgram === secondProgram ? `${prefix}${firstProgram}` : source;
+  }
 
   const JAVA_KEYWORDS = new Set(["abstract", "assert", "break", "case", "catch", "class", "const", "continue", "default", "do", "else", "enum", "extends", "final", "finally", "for", "if", "implements", "import", "instanceof", "interface", "native", "new", "package", "private", "protected", "public", "return", "static", "strictfp", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "var", "void", "volatile", "while", "true", "false", "null"]);
   const JAVA_TYPES = new Set(["boolean", "byte", "char", "double", "float", "int", "long", "short", "String", "System", "Integer", "Double", "Boolean", "Character", "Object", "Math", "Arrays"]);
@@ -321,26 +355,9 @@
 
   function setBusy(isBusy) {
     state.busy = isBusy;
-    [byId("practice-run"), byId("practice-check"), byId("practice-reset")].forEach((button) => {
+    [byId("practice-run"), byId("practice-submit"), byId("practice-check"), byId("practice-reset")].forEach((button) => {
       if (button) button.disabled = isBusy || (button.id === "practice-check" && (!state.lastCompile || !state.lastCompile.success));
     });
-  }
-
-  function readAttempts() {
-    try {
-      const saved = JSON.parse(window.localStorage.getItem(attemptStorageKey) || "[]");
-      return Array.isArray(saved) ? saved : [];
-    } catch (error) {
-      return [];
-    }
-  }
-
-  function saveAttempt(attempt) {
-    try {
-      window.localStorage.setItem(attemptStorageKey, JSON.stringify([attempt, ...readAttempts()].slice(0, 30)));
-    } catch (error) {
-      // The practice page remains usable when browser storage is unavailable.
-    }
   }
 
   function renderQuestionList() {
@@ -355,7 +372,13 @@
       const topicIndex = Math.min(10, Math.max(1, Number(question.topicIndex) || 1));
       const topic = question.topic || question.category || "Java practice";
       const active = index === state.questionIndex;
-      return `<button class="practice-question-number-option topic-${topicIndex}${active ? " active" : ""}" type="button" data-question-index="${index}" data-topic="${escapeHTML(topic)}" title="${escapeHTML(topic)}" aria-label="Question ${index + 1}: ${escapeHTML(question.title)} (${escapeHTML(topic)})" aria-current="${active ? "true" : "false"}">${String(index + 1).padStart(2, "0")}</button>`;
+      const record = getPracticeProgress(question.id);
+      const completed = Boolean(record?.completedAt);
+      const failed = Boolean(record?.lastSubmissionVerdict && !completed && record.lastSubmissionVerdict !== "manual_review");
+      const manualReview = question.topic === "Spring Boot" || record?.lastSubmissionVerdict === "manual_review";
+      const stateClass = `${completed ? " completed" : ""}${failed ? " failed" : ""}${manualReview ? " manual-review" : ""}`;
+      const status = completed ? "Accepted" : manualReview ? "Manual review" : record?.lastSubmissionVerdict ? formatVerdict(record.lastSubmissionVerdict) : "Not submitted";
+      return `<button class="practice-question-number-option topic-${topicIndex}${active ? " active" : ""}${stateClass}" type="button" data-question-index="${index}" data-topic="${escapeHTML(topic)}" title="${escapeHTML(topic)}" aria-label="Question ${index + 1}: ${escapeHTML(question.title)} (${escapeHTML(topic)}; ${status})" aria-current="${active ? "true" : "false"}">${String(index + 1).padStart(2, "0")}</button>`;
     }).join("");
     const tooltip = document.createElement("div");
     tooltip.id = "practice-topic-tooltip";
@@ -398,11 +421,50 @@
     example.innerHTML = `<strong>Example</strong><div class="practice-example-row"><span>Input / setup</span><code>${escapeHTML(question.example.input)}</code></div><div class="practice-example-row"><span>Expected behavior</span><code>${escapeHTML(question.example.output)}</code></div>`;
   }
 
+  function updatePracticeStatus() {
+    const question = currentQuestion();
+    if (!question) return;
+    const record = getPracticeProgress(question.id);
+    const editorStatus = byId("practice-editor-status");
+    const compileStatus = byId("practice-compile-status");
+    const aiStatus = byId("practice-ai-status");
+    const complete = record && record.completedAt;
+    const hasDraft = Boolean(record?.draftCode?.trim() || record?.draftInput?.trim());
+    const readyToSubmit = Boolean(state.lastCompile?.success);
+    if (complete) {
+      setStatus(editorStatus, record.draftDirty ? "Accepted · draft changed" : "Saved solution", "status-success");
+      setStatus(compileStatus, record.lastSubmissionVerdict === "accepted" ? "Accepted" : "Completed", "status-success");
+      setStatus(aiStatus, record.aiReviewed ? "AI reviewed" : "Waiting for AI", record.aiReviewed ? "status-success" : "");
+    } else if (question.topic === "Spring Boot") {
+      setStatus(editorStatus, "Manual review", "status-loading");
+      setStatus(compileStatus, "Not auto-judged", "status-loading");
+      setStatus(aiStatus, "Run code for feedback", "");
+    } else if (record?.lastSubmissionVerdict) {
+      const statusClass = record.lastSubmissionVerdict === "manual_review" ? "status-loading" : "status-error";
+      setStatus(editorStatus, formatVerdict(record.lastSubmissionVerdict), statusClass);
+      setStatus(compileStatus, `${record.lastPassedTestCases}/${record.lastTotalTestCases || 0} tests`, statusClass);
+      setStatus(aiStatus, "Submit after fixing code", "");
+    } else if (readyToSubmit) {
+      setStatus(editorStatus, "Ready to review", "status-loading");
+      setStatus(compileStatus, "Run complete", "status-success");
+      setStatus(aiStatus, "Waiting for a run", "");
+    } else if (hasDraft) {
+      setStatus(editorStatus, "Saved draft", "status-success");
+      setStatus(compileStatus, "Not run yet", "");
+      setStatus(aiStatus, "Waiting for a run", "");
+    } else {
+      setStatus(editorStatus, "Ready", "");
+      setStatus(compileStatus, "Not run yet", "");
+      setStatus(aiStatus, "Waiting for a run", "");
+    }
+  }
+
   function renderQuestion() {
     const question = currentQuestion();
     const code = byId("practice-code");
     const input = byId("practice-input");
     state.lastCompile = null;
+    state.lastSubmission = null;
     if (!question) {
       byId("practice-question-title").textContent = "No question available";
       byId("practice-question-prompt").textContent = "Add Java questions in data/java/practice-questions.js.";
@@ -410,25 +472,63 @@
       if (input) input.value = "";
       refreshCodeEditor();
       renderQuestionList();
+      renderSubmissionResult(null);
       setBusy(false);
       return;
     }
+    const record = getPracticeProgress(question.id);
+    const starterCode = question.starterCode || "public class Main {\n    public static void main(String[] args) {\n    }\n}";
     byId("practice-question-category").textContent = question.category || "Java coding question";
     byId("practice-question-title").textContent = question.title;
     byId("practice-question-difficulty").textContent = question.difficulty || "Practice";
     byId("practice-question-prompt").textContent = question.prompt;
     byId("practice-requirements-list").innerHTML = (question.requirements || []).map((requirement) => `<li>${escapeHTML(requirement)}</li>`).join("");
-    if (code) code.value = question.starterCode || "public class Main {\n    public static void main(String[] args) {\n    }\n}";
-    if (input) input.value = question.input || "";
+    const draftCode = record?.draftCode ?? starterCode;
+    const cleanedDraftCode = collapseExactDuplicateMainCode(draftCode);
+    if (record?.draftCode && cleanedDraftCode !== draftCode) {
+      savePracticeDraft(question.id, cleanedDraftCode, record.draftInput ?? question.input ?? "");
+    }
+    if (code) code.value = cleanedDraftCode;
+    if (input) input.value = record?.draftInput ?? question.input ?? "";
     refreshCodeEditor();
     renderExample(question);
+    renderSubmissionResult(record?.lastSubmissionResult ? {
+      ...record.lastSubmissionResult,
+      verdict: record.lastSubmissionVerdict,
+      message: record.lastSubmissionMessage,
+      passedTestCases: record.lastPassedTestCases,
+      totalTestCases: record.lastTotalTestCases
+    } : null);
+    byId("practice-feedback").innerHTML = record?.aiReviewed
+      ? "<p>AI feedback is saved for this question. Run the current code again before requesting a new review.</p>"
+      : "<p>Run your code first, then choose <strong>Check with AI</strong> to receive feedback.</p>";
     byId("practice-output").textContent = "Run your code to see compiler output here.";
-    byId("practice-feedback").innerHTML = "Run your code first, then choose <strong>Check with AI</strong> to receive feedback.";
-    setStatus(byId("practice-editor-status"), "Ready", "");
-    setStatus(byId("practice-compile-status"), "Not run yet", "");
-    setStatus(byId("practice-ai-status"), "Waiting for a run", "");
     renderQuestionList();
+    updatePracticeStatus();
     setBusy(false);
+  }
+
+  function renderSubmissionResult(result) {
+    const container = byId("practice-submission-result");
+    if (!container) return;
+    if (!result || !result.verdict) {
+      container.className = "practice-submission-empty";
+      container.textContent = "Submit your solution to run the question's automated test suite.";
+      return;
+    }
+    const verdict = String(result.verdict);
+    const score = result.totalTestCases ? `${Number(result.passedTestCases) || 0} / ${Number(result.totalTestCases) || 0} tests passed` : "No automated tests available";
+    const tests = Array.isArray(result.testCases) ? result.testCases : [];
+    const testMarkup = tests.map((test) => {
+      const label = test.hidden ? `Test ${test.index} · Hidden test case` : `Test ${test.index}`;
+      const detail = test.passed ? "Passed" : (test.errors || (test.verdict === "wrong_answer" ? "Output did not match expected output." : formatVerdict(test.verdict)));
+      const output = !test.passed && !test.hidden && (test.expectedOutput || test.actualOutput)
+        ? `<pre>Expected:\n${escapeHTML(test.expectedOutput || "(no output)")}\n\nReceived:\n${escapeHTML(test.actualOutput || "(no output)")}</pre>`
+        : "";
+      return `<div class="practice-submission-test"><strong>${escapeHTML(label)}</strong> — ${escapeHTML(detail)}${output}</div>`;
+    }).join("");
+    container.className = `practice-submission-result verdict-${verdictClass(verdict)}`;
+    container.innerHTML = `<div class="practice-submission-heading"><strong>${escapeHTML(formatVerdict(verdict))}</strong><span class="practice-submission-score">${escapeHTML(score)}</span></div><p class="practice-submission-message">${escapeHTML(result.message || "")}</p>${testMarkup ? `<div class="practice-submission-tests">${testMarkup}</div>` : ""}`;
   }
 
   async function readResponse(response) {
@@ -463,6 +563,8 @@
       errors: typeof errors === "string" ? errors : JSON.stringify(errors, null, 2),
       exitCode,
       status,
+      errorType: firstValue(data, ["errorType"], null),
+      judgeStatusId: firstValue(data, ["judgeStatusId"], null),
       raw: data
     };
   }
@@ -513,11 +615,16 @@
     const question = currentQuestion();
     const code = byId("practice-code")?.value || "";
     const input = byId("practice-input")?.value || "";
-    if (!question || !code.trim()) return;
+    if (!question) return;
+    if (!code.trim()) {
+      showRequestError("Enter Java code before running the program.", "compile");
+      return;
+    }
     if (!config.compileEndpoint) {
       showRequestError("Add the Java compiler endpoint in data/java/practice-config.js first.", "compile");
       return;
     }
+    savePracticeDraft(question.id, code, input);
     setBusy(true);
     setStatus(byId("practice-editor-status"), "Running...", "status-loading");
     setStatus(byId("practice-compile-status"), "Checking...", "status-loading");
@@ -531,16 +638,83 @@
       });
       const result = normalizeCompileResponse(await readResponse(response));
       state.lastCompile = { ...result, code, input, questionId: question.id };
+      const judgeUnavailable = result.errorType === "judge0_error" || Number(result.judgeStatusId) === 13;
       const output = [result.success ? result.output : "", result.errors ? `Errors:\n${result.errors}` : ""].filter(Boolean).join("\n\n") || (result.success ? "Program finished without output." : "The compiler rejected the code.");
       byId("practice-output").textContent = output;
-      setStatus(byId("practice-editor-status"), result.success ? "Run complete" : "Fix code", result.success ? "status-success" : "status-error");
-      setStatus(byId("practice-compile-status"), result.success ? "Compiled" : "Compile error", result.success ? "status-success" : "status-error");
-      byId("practice-feedback").innerHTML = result.success ? "Your code ran successfully. Choose <strong>Check with AI</strong> for a code review." : "Fix the compiler errors before asking AI to review the solution.";
-      setStatus(byId("practice-ai-status"), result.success ? "Ready to review" : "Run after fixing code", result.success ? "" : "status-error");
-      saveAttempt({ questionId: question.id, code, input, compileSuccess: result.success, completedAt: new Date().toISOString() });
+      setStatus(byId("practice-editor-status"), result.success ? "Run complete" : judgeUnavailable ? "Judge unavailable" : "Fix code", result.success ? "status-success" : "status-error");
+      setStatus(byId("practice-compile-status"), result.success ? "Compiled" : judgeUnavailable ? "Unavailable" : "Compile error", result.success ? "status-success" : "status-error");
+      byId("practice-feedback").innerHTML = result.success
+        ? "<p>Your code ran successfully. Choose <strong>Check with AI</strong> for a code review.</p>"
+        : judgeUnavailable
+          ? "<p>Judge0 could not execute this code. Check the local Judge0 service and sandbox configuration.</p>"
+          : "<p>Fix the compiler errors before asking AI to review the solution.</p>";
+      setStatus(byId("practice-ai-status"), result.success ? "Ready to review" : judgeUnavailable ? "Judge unavailable" : "Run after fixing code", result.success || judgeUnavailable ? "" : "status-error");
+      if (window.DIMStorage?.recordPracticeRun) {
+        window.DIMStorage.recordPracticeRun(question.id, {
+          code,
+          input,
+          success: result.success,
+          output: result.output,
+          errors: result.errors,
+          exitCode: result.exitCode
+        });
+      }
     } catch (error) {
       state.lastCompile = null;
       showRequestError(error.message, "compile");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitSolution() {
+    const question = currentQuestion();
+    const code = byId("practice-code")?.value || "";
+    const input = byId("practice-input")?.value || "";
+    if (!question) return;
+    if (!code.trim()) {
+      renderSubmissionResult({ verdict: "judge_error", message: "Enter Java code before submitting.", passedTestCases: 0, totalTestCases: 0 });
+      return;
+    }
+    if (!config.judgeEndpoint) {
+      renderSubmissionResult({ verdict: "judge_error", message: "Add the Java judge endpoint in data/java/practice-config.js first.", passedTestCases: 0, totalTestCases: 0 });
+      return;
+    }
+
+    savePracticeDraft(question.id, code, input);
+    setBusy(true);
+    setStatus(byId("practice-editor-status"), "Submitting...", "status-loading");
+    setStatus(byId("practice-compile-status"), "Judging...", "status-loading");
+    setStatus(byId("practice-ai-status"), "Waiting for submission", "");
+    byId("practice-output").textContent = "Running the complete automated test suite...";
+    renderSubmissionResult({ verdict: "judging", message: "Running the complete automated test suite...", passedTestCases: 0, totalTestCases: 0 });
+    try {
+      const response = await fetch(getApiEndpoint(config.judgeEndpoint), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(config.requestHeaders || {}) },
+        credentials: config.includeCredentials ? "include" : "same-origin",
+        body: JSON.stringify({ language: "java", questionId: question.id, code, source: code, input, stdin: input })
+      });
+      const result = await readResponse(response);
+      state.lastSubmission = { ...result, code, input, questionId: question.id };
+      renderSubmissionResult(result);
+      const output = Array.isArray(result.testCases)
+        ? result.testCases.filter((test) => !test.hidden && (test.actualOutput || test.errors)).map((test) => test.errors || test.actualOutput).join("\n\n")
+        : "";
+      byId("practice-output").textContent = output || result.message || formatVerdict(result.verdict);
+      const accepted = result.verdict === "accepted" || result.accepted === true;
+      const statusClass = accepted ? "status-success" : result.verdict === "manual_review" ? "status-loading" : "status-error";
+      setStatus(byId("practice-editor-status"), accepted ? "Accepted" : formatVerdict(result.verdict), statusClass);
+      setStatus(byId("practice-compile-status"), result.totalTestCases ? `${result.passedTestCases}/${result.totalTestCases} tests` : formatVerdict(result.verdict), statusClass);
+      window.DIMStorage?.recordPracticeSubmission?.(question.id, { ...result, code, input });
+      renderQuestionList();
+      updatePracticeStatus();
+    } catch (error) {
+      state.lastSubmission = null;
+      renderSubmissionResult({ verdict: "judge_error", message: error.message, passedTestCases: 0, totalTestCases: 0 });
+      byId("practice-output").textContent = `Judge request failed:\n${error.message}`;
+      setStatus(byId("practice-editor-status"), "Judge unavailable", "status-error");
+      setStatus(byId("practice-compile-status"), "Unavailable", "status-error");
     } finally {
       setBusy(false);
     }
@@ -566,7 +740,7 @@
       const review = normalizeReviewResponse(await readResponse(response));
       renderFeedback(review);
       setStatus(byId("practice-ai-status"), "Review complete", "status-success");
-      saveAttempt({ questionId: question.id, code: state.lastCompile.code, input: state.lastCompile.input, compileSuccess: true, aiCorrect: review.correct, aiScore: review.score, completedAt: new Date().toISOString() });
+      window.DIMStorage.savePracticeReview(question.id, review);
     } catch (error) {
       showRequestError(error.message, "review");
     } finally {
@@ -579,19 +753,32 @@
     initWorkspaceResizers();
     initFullscreenMode();
     byId("practice-run")?.addEventListener("click", runCode);
+    byId("practice-submit")?.addEventListener("click", submitSolution);
     byId("practice-check")?.addEventListener("click", checkWithAI);
-    byId("practice-reset")?.addEventListener("click", () => renderQuestion());
+    byId("practice-reset")?.addEventListener("click", () => {
+      const question = currentQuestion();
+      if (!question) return;
+      const starterCode = question.starterCode || "public class Main {\n    public static void main(String[] args) {\n    }\n}";
+      savePracticeDraft(question.id, starterCode, question.input || "");
+      renderQuestion();
+    });
     byId("practice-format")?.addEventListener("click", formatCurrentCode);
     const codeEditor = byId("practice-code");
     codeEditor?.addEventListener("input", refreshCodeEditor);
     codeEditor?.addEventListener("scroll", refreshCodeEditor);
     codeEditor?.addEventListener("keydown", handleCodeKeydown);
     [codeEditor, byId("practice-input")].forEach((field) => field?.addEventListener("input", () => {
-      if (!state.lastCompile || state.busy) return;
-      state.lastCompile = null;
-      setStatus(byId("practice-compile-status"), "Run again", "");
-      setStatus(byId("practice-ai-status"), "Waiting for a run", "");
-      setBusy(false);
+      const question = currentQuestion();
+      if (question) savePracticeDraft(question.id, codeEditor?.value || "", byId("practice-input")?.value || "");
+      if (!state.busy && state.lastCompile) {
+        state.lastCompile = null;
+        byId("practice-output").textContent = "Code changed. Run it again to refresh the compiler result.";
+        setStatus(byId("practice-compile-status"), "Run again", "");
+        setStatus(byId("practice-ai-status"), "Waiting for a run", "");
+      } else if (!state.busy) {
+        updatePracticeStatus();
+      }
+      if (!state.busy) setBusy(false);
     }));
   }
 

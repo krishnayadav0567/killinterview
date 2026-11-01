@@ -1,3 +1,5 @@
+const { runJudge0 } = require("../../server/java-judge");
+
 const MAX_REQUEST_BYTES = 120 * 1024;
 
 function getMethod(event) {
@@ -55,14 +57,10 @@ function readJsonBody(event) {
 }
 
 async function runJavaCode(event) {
-  const apiKey = process.env.ONLINECOMPILER_API_KEY;
-  const runUrl = process.env.ONLINECOMPILER_RUN_URL;
-  const compiler = process.env.ONLINECOMPILER_COMPILER;
-
-  if (!apiKey || !runUrl || !compiler) {
+  if (!process.env.JUDGE0_URL) {
     return jsonResponse(event, 503, {
-      error: "OnlineCompiler is not configured.",
-      message: "Add ONLINECOMPILER_API_KEY, ONLINECOMPILER_RUN_URL, and ONLINECOMPILER_COMPILER to the Netlify Functions environment variables and redeploy."
+      error: "Judge0 is not configured.",
+      message: "Add JUDGE0_URL and JUDGE0_LANGUAGE_ID to the Netlify Functions environment variables and redeploy."
     });
   }
 
@@ -80,39 +78,18 @@ async function runJavaCode(event) {
   }
 
   try {
-    const upstream = await fetch(runUrl, {
-      method: "POST",
-      headers: {
-        Authorization: apiKey,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ compiler, code, input })
+    const result = await runJudge0({
+      code,
+      input,
+      judge0Url: process.env.JUDGE0_URL,
+      languageId: process.env.JUDGE0_LANGUAGE_ID || "62",
+      authToken: process.env.JUDGE0_AUTH_TOKEN,
+      rapidApiKey: process.env.RAPIDAPI_KEY,
+      rapidApiHost: process.env.RAPIDAPI_HOST
     });
-
-    const raw = await upstream.text();
-    let result;
-    try {
-      result = raw ? JSON.parse(raw) : {};
-    } catch (error) {
-      result = { error: raw };
-    }
-
-    if (!upstream.ok) {
-      return jsonResponse(event, upstream.status, {
-        error: result.error || result.message || "OnlineCompiler rejected the request.",
-        provider: result
-      });
-    }
-
-    return jsonResponse(event, 200, {
-      ...result,
-      compileSuccess: result.status === "success" && Number(result.exit_code || 0) === 0
-    });
+    return jsonResponse(event, 200, result);
   } catch (error) {
-    return jsonResponse(event, 502, {
-      error: "Could not reach OnlineCompiler.",
-      message: error.message
-    });
+    return jsonResponse(event, error.statusCode || 502, { error: error.message, ...(error.code ? { code: error.code } : {}) });
   }
 }
 

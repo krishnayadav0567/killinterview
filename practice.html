@@ -11,7 +11,7 @@
   <meta name="description" content="Practice Java coding questions, run your code, and receive AI feedback." />
   <title>Java Practice Ground | Developer Interview Master</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/practice.css?v=18" />
+  <link rel="stylesheet" href="css/practice.css?v=22" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
 </head>
@@ -58,7 +58,7 @@
           <div class="practice-card-heading"><div><p class="eyebrow">Your solution</p><h2>Write Java code</h2></div><span id="practice-editor-status" class="practice-status">Ready</span></div>
           <label class="sr-only" for="practice-code">Java solution code</label>
           <div class="practice-editor-shell" role="group" aria-label="Java code editor">
-            <div class="practice-editor-toolbar"><div class="practice-editor-file"><span class="practice-editor-dot" aria-hidden="true"></span><span>Main.java</span></div><div class="practice-editor-toolbar-actions"><span class="practice-editor-language">Java 17</span><button id="practice-format" class="practice-editor-format" type="button" title="Format Java code">Format</button></div></div>
+            <div class="practice-editor-toolbar"><div class="practice-editor-file"><span class="practice-editor-dot" aria-hidden="true"></span><span>Main.java</span></div><div class="practice-editor-toolbar-actions"><span class="practice-editor-language">Java · OpenJDK 13</span><button id="practice-format" class="practice-editor-format" type="button" title="Format Java code">Format</button></div></div>
             <div class="practice-editor-body">
               <div id="practice-code-lines" class="practice-code-lines" aria-hidden="true"></div>
               <div class="practice-code-stage">
@@ -67,7 +67,7 @@
               </div>
             </div>
           </div>
-          <div class="practice-actions"><button id="practice-reset" class="button button-secondary" type="button">Reset code</button><div class="practice-actions-right"><button id="practice-run" class="button button-primary" type="button">Run code <span aria-hidden="true">▶</span></button><button id="practice-check" class="button button-ai" type="button" disabled>Check with AI <span aria-hidden="true">✦</span></button></div></div>
+          <div class="practice-actions"><button id="practice-reset" class="button button-secondary" type="button">Reset code</button><div class="practice-actions-right"><button id="practice-run" class="button button-primary" type="button">Run code <span aria-hidden="true">▶</span></button><button id="practice-submit" class="button button-submit" type="button">Submit solution <span aria-hidden="true">✓</span></button><button id="practice-check" class="button button-ai" type="button" disabled>Check with AI <span aria-hidden="true">✦</span></button></div></div>
         </article>
 
         <div id="practice-resizer-right" class="practice-resizer" role="separator" aria-orientation="vertical" aria-label="Resize compiler and results panels" aria-valuemin="240" aria-valuemax="900" aria-valuenow="270" tabindex="0"></div>
@@ -81,6 +81,7 @@
           <article class="practice-output-card panel">
             <div class="practice-card-heading"><div><p class="eyebrow">Compiler result</p><h2>Output</h2></div><span id="practice-compile-status" class="practice-status">Not run yet</span></div>
             <pre id="practice-output" class="practice-output" aria-live="polite">Run your code to see compiler output here.</pre>
+            <div id="practice-submission-result" class="practice-submission-empty" aria-live="polite">Submit your solution to run the question's automated test suite.</div>
           </article>
 
           <article class="practice-feedback-card panel">
@@ -96,11 +97,14 @@
 
   <script src="data/java-topics.js"></script>
   <script src="data/java/practice-config.js"></script>
-  <script src="data/java/practice-questions.js?v=18"></script>
+  <script src="data/java/practice-questions.js?v=19"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  <script src="js/coding-practice.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/auth-config.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/app.js?v=18"></script>
-  <script src="js/practice.js?v=18"></script>
+  <script src="js/app.js?v=19"></script>
+  <script src="js/practice.js?v=22"></script>
 </body>
 </html>

@@ -89,7 +89,7 @@
   async function registerServiceWorker() {
     if ("serviceWorker" in navigator && (window.location.protocol === "https:" || window.location.hostname === "localhost")) {
       try {
-        const registration = await navigator.serviceWorker.register("./sw.js?v=18");
+        const registration = await navigator.serviceWorker.register("./sw.js?v=22");
         await registration.update();
         let refreshing = false;
         navigator.serviceWorker.addEventListener("controllerchange", () => {

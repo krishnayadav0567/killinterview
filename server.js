@@ -2,6 +2,7 @@ const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
 const { URL } = require("node:url");
+const { judgeJavaSubmission, runJudge0 } = require("./server/java-judge");
 
 const ROOT_DIR = __dirname;
 const MAX_REQUEST_BYTES = 120 * 1024;
@@ -9,8 +10,8 @@ const MAX_REQUEST_BYTES = 120 * 1024;
 loadDotEnv(path.join(ROOT_DIR, ".env"));
 
 const PORT = Number(process.env.PORT || 3000);
-const ONLINECOMPILER_RUN_URL = process.env.ONLINECOMPILER_RUN_URL;
-const ONLINECOMPILER_COMPILER = process.env.ONLINECOMPILER_COMPILER;
+const JUDGE0_URL = process.env.JUDGE0_URL;
+const JUDGE0_LANGUAGE_ID = process.env.JUDGE0_LANGUAGE_ID || "62";
 
 function loadDotEnv(filePath) {
   if (!fs.existsSync(filePath)) return;
@@ -105,14 +106,6 @@ function readJsonBody(request) {
 }
 
 async function runJavaCode(request, response) {
-  if (!process.env.ONLINECOMPILER_API_KEY || !ONLINECOMPILER_RUN_URL || !ONLINECOMPILER_COMPILER) {
-    sendJson(response, 503, {
-      error: "OnlineCompiler is not configured.",
-      message: "Set ONLINECOMPILER_API_KEY, ONLINECOMPILER_RUN_URL, and ONLINECOMPILER_COMPILER in .env or the server environment before running Java code."
-    });
-    return;
-  }
-
   let body;
   try {
     body = await readJsonBody(request);
@@ -129,42 +122,50 @@ async function runJavaCode(request, response) {
   }
 
   try {
-    const upstream = await fetch(ONLINECOMPILER_RUN_URL, {
-      method: "POST",
-      headers: {
-        Authorization: process.env.ONLINECOMPILER_API_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        compiler: ONLINECOMPILER_COMPILER,
+    const result = await runJudge0({
+      code,
+      input,
+      judge0Url: JUDGE0_URL,
+      languageId: JUDGE0_LANGUAGE_ID,
+      authToken: process.env.JUDGE0_AUTH_TOKEN,
+      rapidApiKey: process.env.RAPIDAPI_KEY,
+      rapidApiHost: process.env.RAPIDAPI_HOST
+    });
+    sendJson(response, 200, result);
+  } catch (error) {
+    sendJson(response, error.statusCode || 502, { error: error.message, ...(error.code ? { code: error.code } : {}) });
+  }
+}
+
+async function judgeJavaCode(request, response) {
+  let body;
+  try {
+    body = await readJsonBody(request);
+  } catch (error) {
+    sendJson(response, 400, { error: error.message });
+    return;
+  }
+
+  try {
+    const result = await judgeJavaSubmission({
+      questionId: typeof body.questionId === "string" ? body.questionId : "",
+      code: typeof body.code === "string" ? body.code : "",
+      runner: (code, input, expectedOutput) => runJudge0({
         code,
-        input
+        input,
+        expectedOutput,
+        judge0Url: JUDGE0_URL,
+        languageId: JUDGE0_LANGUAGE_ID,
+        authToken: process.env.JUDGE0_AUTH_TOKEN,
+        rapidApiKey: process.env.RAPIDAPI_KEY,
+        rapidApiHost: process.env.RAPIDAPI_HOST
       })
     });
-    const raw = await upstream.text();
-    let result;
-    try {
-      result = raw ? JSON.parse(raw) : {};
-    } catch (error) {
-      result = { error: raw };
-    }
-
-    if (!upstream.ok) {
-      sendJson(response, upstream.status, {
-        error: result.error || result.message || "OnlineCompiler rejected the request.",
-        provider: result
-      });
-      return;
-    }
-
-    sendJson(response, 200, {
-      ...result,
-      compileSuccess: result.status === "success" && Number(result.exit_code || 0) === 0
-    });
+    sendJson(response, 200, result);
   } catch (error) {
-    sendJson(response, 502, {
-      error: "Could not reach OnlineCompiler.",
-      message: error.message
+    sendJson(response, error.statusCode || 502, {
+      error: error.message || "Java judge failed.",
+      ...(error.code ? { code: error.code } : {})
     });
   }
 }
@@ -218,13 +219,19 @@ function serveStatic(request, response, pathname) {
 const server = http.createServer(async (request, response) => {
   const requestUrl = new URL(request.url, `http://${request.headers.host || "localhost"}`);
   response.req = request;
-  const isPracticeApi = requestUrl.pathname === "/api/java/compile" || requestUrl.pathname === "/api/java/check";
+  const isPracticeApi = requestUrl.pathname === "/api/java/compile"
+    || requestUrl.pathname === "/api/java/judge"
+    || requestUrl.pathname === "/api/java/check";
   if (request.method === "OPTIONS" && isPracticeApi) {
     sendCorsPreflight(response);
     return;
   }
   if (request.method === "POST" && requestUrl.pathname === "/api/java/compile") {
     await runJavaCode(request, response);
+    return;
+  }
+  if (request.method === "POST" && requestUrl.pathname === "/api/java/judge") {
+    await judgeJavaCode(request, response);
     return;
   }
   if (request.method === "POST" && requestUrl.pathname === "/api/java/check") {
@@ -243,6 +250,7 @@ const server = http.createServer(async (request, response) => {
 
 server.listen(PORT, () => {
   console.log(`Developer Interview Master running at http://localhost:${PORT}`);
-  console.log(`Java compiler: ${ONLINECOMPILER_COMPILER}`);
-  console.log(`OnlineCompiler configured: ${Boolean(process.env.ONLINECOMPILER_API_KEY)}`);
+  console.log(`Judge0 URL: ${JUDGE0_URL || "not configured"}`);
+  console.log(`Judge0 Java language ID: ${JUDGE0_LANGUAGE_ID}`);
+  console.log(`Judge0 configured: ${Boolean(JUDGE0_URL)}`);
 });

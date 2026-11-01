@@ -9,3 +9,9 @@
   to = "/.netlify/functions/java-compile"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/api/java/judge"
+  to = "/.netlify/functions/java-judge"
+  status = 200
+  force = true

@@ -1,4 +1,4 @@
-const CACHE_NAME = "developer-interview-master-v18";
+const CACHE_NAME = "developer-interview-master-v24";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -7,6 +7,7 @@ const APP_SHELL = [
   "./quiz.html",
   "./practice.html",
   "./progress.html",
+  "./login.html",
   "./manifest.webmanifest",
   "./css/style.css",
   "./css/topics.css",
@@ -14,7 +15,10 @@ const APP_SHELL = [
   "./css/quiz.css",
   "./css/progress.css",
   "./css/practice.css",
+  "./css/login.css",
   "./js/app.js",
+  "./js/firebase-config.js",
+  "./js/firebase-auth.js",
   "./js/storage.js",
   "./js/auth-config.js",
   "./js/auth.js",
@@ -39,6 +43,7 @@ const APP_SHELL = [
   "./data/java/wrapper-classes.js",
   "./data/java/oop-concepts.js",
   "./data/java/inheritance.js",
+  "./data/java/design-patterns.js",
   "./data/java/multithreading/index.js",
   "./data/java/multithreading/what-is.js",
   "./data/java/multithreading/why.js",

@@ -34,12 +34,63 @@
     return (window.JAVA_TOPIC_THEORY || {})[topicId] || null;
   }
 
+  function renderTheoryFacts(subsection) {
+    const facts = [
+      ["Use it when", subsection.when],
+      ["Java example", subsection.example],
+      ["Trade-off", subsection.tradeoff]
+    ].filter(([, value]) => value);
+
+    if (!facts.length) return "";
+
+    return `<dl class="theory-facts">${facts.map(([label, value]) => `<div><dt>${escapeHTML(label)}</dt><dd>${escapeHTML(value)}</dd></div>`).join("")}</dl>`;
+  }
+
+  function renderTheorySubsection(section, subsection, sectionIndex, subsectionIndex) {
+    const subsectionId = subsection.id || `theory-${sectionIndex + 1}-${subsectionIndex + 1}`;
+    const number = `${sectionIndex + 1}.${subsectionIndex + 1}`;
+    const points = Array.isArray(subsection.points) && subsection.points.length
+      ? `<ul class="theory-subsection-points">${subsection.points.map((point) => `<li>${escapeHTML(point)}</li>`).join("")}</ul>`
+      : "";
+
+    return `<article id="${escapeHTML(subsectionId)}" class="theory-subsection">
+      <div class="theory-subsection-heading"><span class="theory-subsection-number">${escapeHTML(number)}</span><h4>${escapeHTML(subsection.title)}</h4></div>
+      <p class="theory-definition">${escapeHTML(subsection.definition || subsection.summary || "")}</p>
+      ${points}
+      ${renderTheoryFacts(subsection)}
+      ${subsection.code ? renderCodeBlock(subsection.code, subsection.codeLabel || "Java example") : ""}
+    </article>`;
+  }
+
+  function renderTheorySection(section, sectionIndex) {
+    const sectionId = section.id || `theory-section-${sectionIndex + 1}`;
+    const sectionNumber = String(sectionIndex + 1).padStart(2, "0");
+    const subsections = Array.isArray(section.subsections) && section.subsections.length
+      ? `<div class="theory-subsections">${section.subsections.map((subsection, subsectionIndex) => renderTheorySubsection(section, subsection, sectionIndex, subsectionIndex)).join("")}</div>`
+      : `<ul class="theory-points">${(section.points || []).map((point) => `<li>${escapeHTML(point)}</li>`).join("")}</ul>`;
+
+    return `<article id="${escapeHTML(sectionId)}" class="theory-section">
+      <div class="theory-section-heading"><span class="theory-section-number">Part ${escapeHTML(sectionNumber)}</span><div><p class="theory-section-label">${escapeHTML(section.label || "Topic section")}</p><h3>${escapeHTML(section.title)}</h3></div></div>
+      <p class="theory-summary">${escapeHTML(section.summary || "")}</p>
+      ${subsections}
+      ${section.nuances && section.nuances.length ? `<div class="theory-nuances"><strong>${escapeHTML(section.nuanceTitle || "Remember")}</strong><ul>${section.nuances.map((nuance) => `<li>${escapeHTML(nuance)}</li>`).join("")}</ul></div>` : ""}
+      ${section.code ? renderCodeBlock(section.code, section.codeLabel || "Java example") : ""}
+    </article>`;
+  }
+
   function renderTheory(topic, theory) {
     if (!theory) return `<div class="topic-theory-panel"><div class="empty-state"><h2>Theory is being prepared</h2><p>The complete guide for ${escapeHTML(topic.name)} will be added soon.</p></div></div>`;
+    const contents = Array.isArray(theory.contents) && theory.contents.length
+      ? `<nav class="theory-contents" aria-label="${escapeHTML(topic.name)} contents"><div><p class="eyebrow">In this guide</p><h3>Topic roadmap</h3></div><ol>${theory.contents.map((item, index) => `<li><a href="#${escapeHTML(item.id)}"><span>${String(index + 1).padStart(2, "0")}</span><strong>${escapeHTML(item.title)}</strong><small>${escapeHTML(item.description || "")}</small></a></li>`).join("")}</ol></nav>`
+      : "";
+
+    const theorySections = theory.chapters || theory.sections || [];
+
     return `<div id="topic-theory" class="topic-theory-panel">
-      <div class="theory-intro"><p class="eyebrow">Complete topic guide</p><h2>${escapeHTML(topic.name)} theory</h2><p>${escapeHTML(theory.introduction)}</p></div>
-      <div class="theory-sections">${theory.sections.map((section) => `<article class="theory-section"><h3>${escapeHTML(section.title)}</h3><p class="theory-summary">${escapeHTML(section.summary)}</p><ul class="theory-points">${section.points.map((point) => `<li>${escapeHTML(point)}</li>`).join("")}</ul><div class="theory-nuances"><strong>Important nuances</strong><ul>${section.nuances.map((nuance) => `<li>${escapeHTML(nuance)}</li>`).join("")}</ul></div>${section.code ? renderCodeBlock(section.code) : ""}</article>`).join("")}</div>
-      <section class="theory-takeaways"><h3>Interview takeaways</h3><ul>${theory.takeaways.map((takeaway) => `<li>${escapeHTML(takeaway)}</li>`).join("")}</ul></section>
+      <div class="theory-intro"><p class="eyebrow">Complete topic guide</p><h2>${escapeHTML(topic.name)}: from basics to interview use</h2><p>${escapeHTML(theory.introduction)}</p></div>
+      ${contents}
+      <div class="theory-sections">${theorySections.map((section, index) => renderTheorySection(section, index)).join("")}</div>
+      <section class="theory-takeaways"><p class="eyebrow">Final revision</p><h3>Interview takeaways</h3><ul>${(theory.takeaways || []).map((takeaway) => `<li>${escapeHTML(takeaway)}</li>`).join("")}</ul></section>
     </div>`;
   }
 
@@ -49,7 +100,8 @@
 
   function renderQuestion(question) {
     const learned = window.DIMStorage && window.DIMStorage.isQuestionLearned(question.id);
-    return `<article class="learning-card${learned ? " is-learned" : ""}" id="${escapeHTML(question.id)}" data-learned="${learned ? "true" : "false"}">
+    const solved = window.DIMStorage && window.DIMStorage.isQuestionSolved(question.id);
+    return `<article class="learning-card${learned ? " is-learned" : ""}${solved ? " is-solved" : ""}" id="${escapeHTML(question.id)}" data-learned="${learned ? "true" : "false"}" data-solved="${solved ? "true" : "false"}">
       <div class="learning-question-row">
         <h3>${escapeHTML(question.question)}</h3>
         <span class="section-label">${escapeHTML(question.section || "concept")}</span>
@@ -62,7 +114,7 @@
         ${question.commonMistakes ? `<div><strong>Common mistake</strong><p>${escapeHTML(question.commonMistakes)}</p></div>` : ""}
       </div>
       ${question.interviewReadyAnswer ? `<div class="interview-answer"><strong>Interview-ready answer</strong><p>${escapeHTML(question.interviewReadyAnswer)}</p></div>` : ""}
-      <div class="learning-card-footer"><label class="learned-toggle"><input type="checkbox" data-learned-id="${escapeHTML(question.id)}" ${learned ? "checked" : ""} /> <span class="learned-status">${learned ? "Done" : "Mark learned"}</span></label></div>
+      <div class="learning-card-footer"><label class="learned-toggle"><input type="checkbox" data-learned-id="${escapeHTML(question.id)}" ${learned ? "checked" : ""} /> <span class="learned-status">${learned ? "Done" : "Mark learned"}</span></label><button class="submit-answer-button${solved ? " is-submitted" : ""}" type="button" data-solved-id="${escapeHTML(question.id)}" aria-pressed="${solved ? "true" : "false"}">${solved ? "Solved ✓" : "Submit answer"}</button></div>
     </article>`;
   }
 
@@ -92,7 +144,7 @@
 
     if (breadcrumb) breadcrumb.textContent = topic.name;
     if (hero) {
-      hero.innerHTML = `<div class="topic-hero-copy"><p class="eyebrow">Java learning path</p><h1>${escapeHTML(topic.name)}</h1><p>${escapeHTML(topic.description)}</p><div class="topic-hero-actions"><a class="button button-primary" href="${quizUrl}">Practice quiz <span aria-hidden="true">→</span></a><span class="topic-progress-copy"><span><strong id="topic-learned-count">${stats.learned}</strong>/${questions.length} learned</span><button id="reset-topic-progress" class="button button-outline-danger topic-reset-button" type="button" ${stats.learned ? "" : "disabled"}>Reset learned</button></span></div></div><div class="topic-progress-ring"><strong id="topic-progress-percent">${stats.percentage}%</strong><small>complete</small></div>`;
+      hero.innerHTML = `<div class="topic-hero-copy"><p class="eyebrow">Java learning path</p><h1>${escapeHTML(topic.name)}</h1><p>${escapeHTML(topic.description)}</p><div class="topic-hero-actions"><a class="button button-primary" href="${quizUrl}">Practice quiz <span aria-hidden="true">→</span></a><span class="topic-progress-copy"><span><strong id="topic-learned-count">${stats.learned}</strong>/${questions.length} learned</span><span><strong id="topic-solved-count">${stats.solved}</strong>/${questions.length} solved</span><button id="reset-topic-progress" class="button button-outline-danger topic-reset-button" type="button" ${stats.learned ? "" : "disabled"}>Reset learned</button></span></div></div><div class="topic-progress-ring"><strong id="topic-progress-percent">${stats.percentage}%</strong><small>learned</small></div>`;
     }
     if (content) {
       const availableTopics = (window.JAVA_TOPICS || []).filter((item) => item.contentAvailable).sort((a, b) => a.order - b.order);
@@ -112,8 +164,10 @@
 
     function updateTopicProgress(updated) {
       const learnedCount = document.getElementById("topic-learned-count");
+      const solvedCount = document.getElementById("topic-solved-count");
       const percent = document.getElementById("topic-progress-percent");
       if (learnedCount) learnedCount.textContent = String(updated.learned);
+      if (solvedCount) solvedCount.textContent = String(updated.solved);
       if (percent) percent.textContent = `${updated.percentage}%`;
       if (resetButton) resetButton.disabled = updated.learned === 0;
     }
@@ -184,6 +238,22 @@
 
     content.addEventListener("click", async (event) => {
       const copyButton = event.target.closest(".copy-code-button");
+      const submitButton = event.target.closest("[data-solved-id]");
+      if (submitButton) {
+        const solved = submitButton.getAttribute("aria-pressed") !== "true";
+        const questionId = submitButton.dataset.solvedId;
+        window.DIMStorage.markQuestionSolved(questionId, solved);
+        const card = submitButton.closest(".learning-card");
+        if (card) {
+          card.dataset.solved = String(solved);
+          card.classList.toggle("is-solved", solved);
+        }
+        submitButton.setAttribute("aria-pressed", String(solved));
+        submitButton.classList.toggle("is-submitted", solved);
+        submitButton.textContent = solved ? "Solved ✓" : "Submit answer";
+        updateTopicProgress(window.DIMStorage.getTopicStats(topicId, window.JAVA_LEARNING_QUESTIONS || []));
+        return;
+      }
       if (!copyButton) return;
       const code = copyButton.closest(".code-block")?.querySelector("code")?.textContent || "";
       try {

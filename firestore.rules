@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // USERS - Each user can read/write their own profile
+    // ============================================================
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ============================================================
+    // TECHNOLOGIES - Readable by everyone, writable by admins only
+    // ============================================================
+    match /technologies/{techId} {
+      allow read: if true;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    // ============================================================
+    // QUESTIONS - Readable by everyone, writable by admins only
+    // Contains test cases for each coding question
+    // ============================================================
+    match /questions/{questionId} {
+      allow read: if true;
+      allow write: if request.auth != null && isAdmin();
+    }
+
+    // ============================================================
+    // USER PROGRESS - Users can read/write their own progress
+    // Composite key: userId_techId_questionId
+    // Tracks completion status (green/red), test case results, attempts
+    // ============================================================
+    match /userProgress/{progressId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // ============================================================
+    // SUBMISSIONS - Users can create/read their own submissions
+    // Full audit trail of code submissions and test case results
+    // ============================================================
+    match /submissions/{submissionId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+
+    // ============================================================
+    // Helper: Check if user is admin (custom claims)
+    // ============================================================
+    function isAdmin() {
+      return request.auth.token.admin === true;
+    }
+  }
+}

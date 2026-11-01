@@ -129,6 +129,7 @@ small { color: var(--text-secondary); font-size: 13px; }
 .install-app-button:hover { border-color: var(--brand); background: var(--brand); box-shadow: 0 8px 18px rgba(79, 70, 229, .22); color: #fff; transform: translateY(-1px); }
 .auth-container { position: relative; display: flex; align-items: center; min-width: 0; }
 .google-login-wrap { display: flex; align-items: center; gap: 8px; }
+.auth-setup-link { min-height: 36px; padding: 7px 12px; font-size: 12px; white-space: nowrap; }
 .auth-hint { display: none; }
 .auth-loading, .auth-error, .auth-unconfigured { color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
 .auth-error { color: var(--danger); }
@@ -140,6 +141,7 @@ small { color: var(--text-secondary); font-size: 13px; }
 .auth-avatar { display: inline-flex; width: 26px; height: 26px; flex: 0 0 26px; align-items: center; justify-content: center; overflow: hidden; border-radius: 50%; background: var(--brand-light); color: var(--brand); font-size: 12px; font-weight: 800; }
 .auth-avatar-fallback { border: 1px solid var(--brand-border); }
 .auth-menu { position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; display: grid; min-width: 210px; gap: 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-hover); padding: 12px; }
+.auth-menu[hidden] { display: none; }
 .auth-email { overflow: hidden; color: var(--text-secondary); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .auth-sign-out { border: 0; border-radius: var(--radius-sm); background: var(--surface-secondary); padding: 8px 10px; color: var(--text-primary); font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; }
 .auth-sign-out:hover { background: var(--brand-light); color: var(--brand); }
